@@ -12,33 +12,37 @@
 #include "../JuceLibraryCode/JuceHeader.h"
 #include "SynthSound.h"
 #include "CSG_dsp.h"
-#include "../../../gitstuff/nkvdu_libraries/nkvdu_LFO.h"
+#include "include/nvs_LFO.h"
+//#include "src/nvs_LFO.cpp"
+#include "include/nvs_filters.h"
+//#include "src/nvs_filters.cpp"
 #define MINUS_NINE_DB 0.354813389233575
 
 class CSGVoice      :       public SynthesiserVoice
 {
 public:
     CSGVoice()
-    : oversample_factor(4)
+    : vcf(44100.f), env(44100.f), oversample_factor(4)
     {
         csg unit = csg(44100.f);
         
-        onePole vcf = onePole(44100.f);
+        //nkvdu_filters::onePole vcf;
+//        nvs_filters::onePole vcf =  nvs_filters::onePole(44100.f);
         svf.setSampleRate(44100.f);
         svf.set_oversample(oversample_factor);
-        slewlim env = slewlim(44100.f);
+//        nvs_filters::slewlim env = nvs_filters::slewlim(44100.f);
         //simple_lfo lfo = simple_lfo(44100.f);   // may complain about unused, but it is used...
         csg_wave = 0.f;
     }
     CSGVoice(float sample_rate)
-    : oversample_factor(4)
+    : vcf(sample_rate), env(sample_rate), oversample_factor(4)
     {
         csg unit = csg(sample_rate);
 
-        onePole vcf = onePole(sample_rate);
+//        nvs_filters::onePole vcf = nvs_filters::onePole(sample_rate);
         svf.setSampleRate(sample_rate);
         svf.set_oversample(oversample_factor);
-        slewlim env = slewlim(sample_rate);
+//        nvs_filters::slewlim env = nvs_filters::slewlim(sample_rate);
         //simple_lfo lfo = simple_lfo(sample_rate);   // may complain about unused, but it is used...
         csg_wave = 0.f;
     }
@@ -98,8 +102,8 @@ public:
         if (last_lfo_freq != lfo._freq)
             lfo._freq = last_lfo_freq;
         
-        if (last_lfo_wave != lfo._wave)
-            lfo._wave = last_lfo_wave;
+//        if (last_lfo_wave != lfo._wave)
+//            lfo._wave = last_lfo_wave;
         
         svf._cutoffTarget = voice_cutoff;
         svf._resonanceTarget = voice_res;
@@ -129,7 +133,7 @@ public:
             env.setRise();
             env.setFall();
             lfo.phasor();   // increment internal phase of LFO
-            lfo_out = lfo.multi();
+            lfo_out = lfo.multi(last_lfo_wave);
             
             csg_wave = unit.getWave();
 
@@ -164,7 +168,7 @@ public:
             env_currentVal *= env_currentVal;
             
             outputBuffer.addSample(0, startSample,
-                                   atanf(vcf_outL * nkvdu_memoryless::linterp<float>(env_currentVal, voice_droneCurrent, voice_droneCurrent)) * MINUS_NINE_DB);
+                                   atanf(vcf_outL * nvs::memoryless::linterp<float>(env_currentVal, voice_droneCurrent, voice_droneCurrent)) * MINUS_NINE_DB);
             if (outputBuffer.getNumChannels() > 1)
             {
                 switch (filterTypeR)
@@ -191,21 +195,22 @@ public:
                     }
                 }
                 outputBuffer.addSample(1, startSample,
-                                       atanf(vcf_outR * nkvdu_memoryless::linterp<float>(env_currentVal, voice_droneCurrent, voice_droneCurrent)) * MINUS_NINE_DB);
+                                       atanf(vcf_outR * nvs::memoryless::linterp<float>(env_currentVal, voice_droneCurrent, voice_droneCurrent)) * MINUS_NINE_DB);
             }
             ++startSample;
         }
     }
     //===========================================================================
     csg unit;   // instance of the device!
-    simple_lfo lfo;
-    onePole vcf;    //unused.
-    svf_nl_rk svf;
-    slewlim env;
+    nvssynthesis_lfo::simple_lfo<float> lfo;
+    nvs_filters::onePole<float> vcf;    //unused.
+    nvs_filters::svf_nl_rk<float> svf;
+    nvs_filters::slewlim<float> env;
     float voice_drone, voice_droneCurrent,
-    voice_rise, voice_fall, voice_cutoff, voice_res;
-    float MODselfFM, MODFMsmooth, MODBits_A,
-        MODPM_preamp, MODPMsmooth, MODSin2Cos, MODBits_B;
+        voice_rise, voice_fall, voice_cutoff, voice_res;
+    float MODselfFM, MODMemory, MODFMsmooth, MODBits_A,
+        MODPM_preamp, MODPMsmooth, MODSin2Cos, MODBits_B,
+        MODCutoff, MODResonance;
     float last_lfo_freq, last_lfo_wave;
     int filterTypeL, filterTypeR;
     float env_currentVal;

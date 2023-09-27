@@ -9,7 +9,7 @@
 */
 
 #pragma once
-#include "../../../gitstuff/nkvdu_libraries/nkvdu_filters.h"
+#include "include/nvs_filters.h"
 #include "../JuceLibraryCode/JuceHeader.h"
 
 
@@ -37,8 +37,8 @@ public:
     
 private:
     double _phase;  // master phasor
-    onePole FM_filter, PM_filter;   // for smoothing feedback modulations
-    dcBlock dc_b;
+    nvs_filters::onePole<float> FM_filter, PM_filter;   // for smoothing feedback modulations
+    nvs_filters::dcBlock<float> dc_b;
 
     int wp, rp, rp_neighbor, zLength;     // iterators for delay
     
@@ -49,7 +49,7 @@ private:
     //FM = frequency modulate,
     //PM = phase modulate.
     double bits1, bits2, self_FM, FM_smooth, PM_sin2cos, PM_preamp, PM_smooth;
-    nkvdu_memoryless::trigTables trig_tables;
+    nvs::memoryless::trigTables<double> trig_tables;
     
     //float zLine[16];
     juce::AudioSampleBuffer zLine;

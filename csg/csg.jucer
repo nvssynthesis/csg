@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<JUCERPROJECT id="FY2PJF" name="csg" projectType="audioplug" jucerVersion="5.4.5"
-              companyName="nvsynthesis" pluginCharacteristicsValue="pluginIsSynth,pluginWantsMidiIn"
-              pluginName="CSG" pluginDesc="Curl and Skew Generator">
+<JUCERPROJECT id="FY2PJF" name="csg" projectType="audioplug" companyName="nvsynthesis"
+              pluginCharacteristicsValue="pluginIsSynth,pluginWantsMidiIn"
+              pluginName="CSG" pluginDesc="Curl and Skew Generator" displaySplashScreen="1"
+              jucerFormatVersion="1" headerPath="/Users/nicholassolem/development/nvs_libraries/nvs_libraries">
   <MAINGROUP id="eGLGw9" name="csg">
     <GROUP id="{69A94108-40CB-F911-8559-A14C4205D062}" name="Source">
       <FILE id="qq2pvv" name="CSG_dsp.cpp" compile="1" resource="0" file="Source/CSG_dsp.cpp"/>
@@ -18,6 +19,14 @@
       <FILE id="LZ4nIJ" name="SynthVoice.h" compile="0" resource="0" file="Source/SynthVoice.h"/>
       <FILE id="wxFMxn" name="enclosure_medium.png" compile="0" resource="1"
             file="Source/enclosure_medium.png"/>
+      <FILE id="PwvAI3" name="nvs_delayFilters.h" compile="0" resource="0"
+            file="../../../../development/nvs_libraries/nvs_libraries/include/nvs_delayFilters.h"/>
+      <FILE id="HdDI26" name="nvs_LFO.h" compile="0" resource="0" file="../../../../development/nvs_libraries/nvs_libraries/include/nvs_LFO.h"/>
+      <FILE id="JXwDGL" name="nvs_memoryless.h" compile="0" resource="0"
+            file="../../../../development/nvs_libraries/nvs_libraries/include/nvs_memoryless.h"/>
+      <FILE id="HwPUUI" name="nvs_filters.h" compile="0" resource="0" file="../../../../development/nvs_libraries/nvs_libraries/include/nvs_filters.h"/>
+      <FILE id="TQ8Uft" name="nvs_filters.cpp" compile="1" resource="0" file="../../../../development/nvs_libraries/nvs_libraries/src/nvs_filters.cpp"/>
+      <FILE id="Jmebxa" name="nvs_LFO.cpp" compile="1" resource="0" file="../../../../development/nvs_libraries/nvs_libraries/src/nvs_LFO.cpp"/>
     </GROUP>
   </MAINGROUP>
   <EXPORTFORMATS>

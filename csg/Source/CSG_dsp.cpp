@@ -9,7 +9,7 @@
 */
 
 #include "CSG_dsp.h"
-#include <iostream>
+//#include <iostream>
 
 csg::csg()
     : _oneOverBlockSize(0.0009765625f), _freq(110.f), _phase(0.f), memory(2.f), output(0.f), bits1(2048.f), bits2(2048.f), zLine(1, 32)
@@ -48,14 +48,14 @@ void csg::clearDelay()
 
 float csg::phasor()
 {
-    using namespace nkvdu_memoryless;
+    using namespace nvs::memoryless;
     _phase += _freq * fs_delta;
     _phase = mod_1<double>(_phase);
     return _phase;
 }
 float csg::phasor_fm(float sample)
 {
-    using namespace nkvdu_memoryless;
+    using namespace nvs::memoryless;
     _phase += (_freq + sample) * fs_delta;
     _phase = mod_1<double>(_phase);
     return _phase;
@@ -63,7 +63,7 @@ float csg::phasor_fm(float sample)
 
 float csg::getWave()
 {
-    using namespace nkvdu_memoryless;
+    using namespace nvs::memoryless;
     
     //update params===================================================================================
     if (selfFM_target != selfFM)
@@ -133,7 +133,7 @@ float csg::getWave()
 
     
     // now take the sin of the summed signals! this is the CSG.
-    output = trig_tables.bp_sin_LUT(wrap<float>(junction, -1.f, 1.f));
+    output = (float)trig_tables.bp_sin_LUT(wrap<float>(junction, -1.f, 1.f));
     
     zLine.setSample(0, wp, output);
 

@@ -159,6 +159,11 @@ parameters(*this,
                 "Cutoff_MOD",
                 selfFM_AmountRange, // using just because it's [0..1]
                 0.f),
+           std::make_unique<AudioParameterFloat>
+               ("Resonance_MOD",
+                "Resonance_MOD",
+                selfFM_AmountRange, // using just because it's [0..1]
+                0.f),
            std::make_unique<AudioParameterInt>
                ("Filter Type Left",
                 "Filter Type Left",
@@ -373,7 +378,11 @@ void CsgAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer& mi
             Last_MODselfFM = *parameters.getRawParameterValue("Self_FM_MOD");
             csg_voice->MODselfFM = Last_MODselfFM;
         }
-        
+        if (Last_MODMemory != *parameters.getRawParameterValue("Memory_MOD"))
+        {
+            Last_MODMemory = *parameters.getRawParameterValue("Memory_MOD");
+            csg_voice->MODMemory = Last_MODMemory;
+        }
         if (Last_MODFMsmooth != *parameters.getRawParameterValue("FM_Smooth_MOD"))
         {
             Last_MODFMsmooth = *parameters.getRawParameterValue("FM_Smooth_MOD");
@@ -403,6 +412,16 @@ void CsgAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer& mi
         {
             Last_MODBits_B = *parameters.getRawParameterValue("Bits_B_MOD");
             csg_voice->MODBits_B = Last_MODBits_B;
+        }
+        if (Last_MODCutoff != *parameters.getRawParameterValue("Cutoff_MOD"))
+        {
+            Last_MODCutoff = *parameters.getRawParameterValue("Cutoff_MOD");
+            csg_voice->MODCutoff = Last_MODCutoff;
+        }
+        if (Last_MODResonance != *parameters.getRawParameterValue("Resonance_MOD"))
+        {
+            Last_MODResonance = *parameters.getRawParameterValue("Resonance_MOD");
+            csg_voice->MODResonance = Last_MODResonance;
         }
         if (Last_lfoSpeed != *parameters.getRawParameterValue("LFO_Speed"))
         {

@@ -74,7 +74,8 @@ private:
         Last_Drone, Last_Rise, Last_Fall, Last_Cutoff, Last_Resonance,
         Last_lfoSpeed, Last_lfoWave,
         Last_MODselfFM, Last_MODMemory, Last_MODFMsmooth, Last_MODBits_A,
-        Last_MODPM_preamp, Last_MODPMsmooth, Last_MODSin2Cos, Last_MODBits_B;
+        Last_MODPM_preamp, Last_MODPMsmooth, Last_MODSin2Cos, Last_MODBits_B,
+        Last_MODCutoff, Last_MODResonance;
     
     int Last_FilterTypeLeft, Last_FilterTypeRight;
     

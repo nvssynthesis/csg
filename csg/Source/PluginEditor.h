@@ -12,6 +12,8 @@
 
 #include "../JuceLibraryCode/JuceHeader.h"
 #include "PluginProcessor.h"
+#define N_PARAMS_MAIN 15
+#define N_PARAMS_MOD 10
 
 //==============================================================================
 /**
@@ -53,7 +55,18 @@ private:
         LFO_FreqSlider,
         MODselfFM_Slider, MODmemorySlider, MODFMsmoothSlider, MODBits_A_Slider,
         MODPM_preampSlider, MODPMsmoothSlider, MODSin2CosSlider, MODBits_B_Slider,
-        MODCutoffSlider;
+        MODCutoffSlider, MODResonanceSlider;
+    
+    std::vector<juce::Slider*> sliders_main = {&selfFM_Slider, &MemorySlider, &FMsmoothSlider, &Bits_A_Slider,
+        &PM_preampSlider, &PMsmoothSlider, &Sin2CosSlider, &Bits_B_Slider,
+        &DroneSlider, &RiseSlider, &FallSlider,
+        &CutoffSlider, &ResSlider,
+        &LFOspeedSlider, &LFOwaveSlider,
+        &LFO_FreqSlider};
+    
+    std::vector<juce::Slider*> sliders_mod = {&MODselfFM_Slider, &MODmemorySlider, &MODFMsmoothSlider, &MODBits_A_Slider,
+        &MODPM_preampSlider, &MODPMsmoothSlider, &MODSin2CosSlider, &MODBits_B_Slider,
+        &MODCutoffSlider, &MODResonanceSlider};
     
     Slider filterTypeSlider_L, filterTypeSlider_R;
     
@@ -63,6 +76,12 @@ private:
         CutoffLabel, ResLabel,
         LFOspeedLabel, LFOwaveLabel;
     
+    std::vector<juce::Label*> labels = {&selfFM_Label, &MemoryLabel, &FMsmoothLabel, &Bits_A_Label,
+        &PM_preampLabel, &PMsmoothLabel, &Sin2CosLabel, &Bits_B_Label,
+        &DroneLabel, &RiseLabel, &FallLabel,
+        &CutoffLabel, &ResLabel,
+        &LFOspeedLabel, &LFOwaveLabel};
+
     Font labelFont;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (CsgAudioProcessorEditor)
