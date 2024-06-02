@@ -1,0 +1,3 @@
+[submodule "nvs_libraries"]
+	path = nvs_libraries
+	url = https://github.com/nvssynthesis/nvs_libraries.git
