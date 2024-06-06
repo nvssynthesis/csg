@@ -39,142 +39,143 @@ parameters(*this,
            nullptr,
            "PARAMETERS",
            {std::make_unique<AudioParameterFloat>
-               ("Self_FM",
+               (juce::ParameterID("Self_FM", 1),
                 "Self_FM",
                 selfFM_AmountRange,
                 0.f),
            std::make_unique<AudioParameterFloat>
-               ("Memory",
+               (juce::ParameterID("Memory", 1),
                 "Memory",
                 memoryRange,
                 1.f),
            std::make_unique<AudioParameterFloat>
-               ("FM_Smooth",
+               (juce::ParameterID("FM_Smooth", 1),
                 "FM_Smooth",
                 smoothingRange,
                 2000.f),
            std::make_unique<AudioParameterFloat>
-               ("Bits_A",
+               (juce::ParameterID("Bits_A", 1),
                 "Bits_A",
                 BitsRange,
                 2048.f),
            std::make_unique<AudioParameterFloat>
-               ("PM_Preamp",
+               (juce::ParameterID("PM_Preamp", 1),
                 "PM_Preamp",
                 PM_preamp_range,
                 20000.f),
            std::make_unique<AudioParameterFloat>
-               ("PM_Smooth",
+               (juce::ParameterID("PM_Smooth", 1),
                 "PM_Smooth",
                 smoothingRange,
                 2000.f),
            std::make_unique<AudioParameterFloat>
-               ("Sin2Cos",
+               (juce::ParameterID("Sin2Cos", 1),
                 "Sin2Cos",
                 sin2cosRange,
                 0.f),
            std::make_unique<AudioParameterFloat>
-               ("Bits_B",
+               (juce::ParameterID("Bits_B", 1),
                 "Bits_B",
                 BitsRange,
                 2048.f),
            std::make_unique<AudioParameterFloat>
-               ("Drone",
+               (juce::ParameterID("Drone", 1),
                 "Drone",
                 droneRange,
                 0.f),
            std::make_unique<AudioParameterFloat>
-               ("Rise",
+               (juce::ParameterID("Rise", 1),
                 "Rise",
                 slewRange,
                 0.01f),
            std::make_unique<AudioParameterFloat>
-               ("Fall",
+               (juce::ParameterID("Fall", 1),
                 "Fall",
                 slewRange,
                 0.01f),
            std::make_unique<AudioParameterFloat>
-               ("Cutoff",
+               (juce::ParameterID("Cutoff", 1),
                 "Cutoff",
                 cutoffRange,
                 20000.f),
            std::make_unique<AudioParameterFloat>
-               ("Resonance",
+               (juce::ParameterID("Resonance", 1),
                 "Resonance",
                 resRange,
                 1.f),
            std::make_unique<AudioParameterFloat>
-               ("LFO_Speed",
+               (juce::ParameterID("LFO_Speed", 1),
                 "LFO_Speed",
                 lfoSpeedRange,
                 1.f),
            std::make_unique<AudioParameterFloat>
-               ("LFO_Wave",
+               (juce::ParameterID("LFO_Wave", 1),
                 "LFO_Wave",
                 lfoWaveRange,
                 0.f),
        //===========LFO MODULATION AMOUNTS===========================
            std::make_unique<AudioParameterFloat>
-               ("Self_FM_MOD",
+               (juce::ParameterID("Self_FM_MOD", 1),
                 "Self_FM_MOD",
                 selfFM_AmountRange, // using just because it's [0..1]
                 0.f),
            std::make_unique<AudioParameterFloat>
-               ("Memory_MOD",
+               (juce::ParameterID("Memory_MOD", 1),
                 "Memory_MOD",
                 selfFM_AmountRange, // using just because it's [0..1]
                 0.f),
            std::make_unique<AudioParameterFloat>
-               ("FM_Smooth_MOD",
+               (juce::ParameterID("FM_Smooth_MOD", 1),
                 "FM_Smooth_MOD",
                 selfFM_AmountRange, // using just because it's [0..1]
                 0.f),
            std::make_unique<AudioParameterFloat>
-               ("Bits_A_MOD",
+               (juce::ParameterID("Bits_A_MOD", 1),
                 "Bits_A_MOD",
                 selfFM_AmountRange, // using just because it's [0..1]
                 0.f),
            std::make_unique<AudioParameterFloat>
-               ("PM_Preamp_MOD",
+               (juce::ParameterID("PM_Preamp_MOD", 1),
                 "PM_Preamp_MOD",
                 selfFM_AmountRange, // using just because it's [0..1]
                 0.f),
            std::make_unique<AudioParameterFloat>
-               ("PM_Smooth_MOD",
+               (juce::ParameterID("PM_Smooth_MOD", 1),
                 "PM_Smooth_MOD",
                 selfFM_AmountRange, // using just because it's [0..1]
                 0.f),
            std::make_unique<AudioParameterFloat>
-               ("Sin2Cos_MOD",
+               (juce::ParameterID("Sin2Cos_MOD", 1),
                 "Sin2Cos_MOD",
                 selfFM_AmountRange, // using just because it's [0..1]
                 0.f),
            std::make_unique<AudioParameterFloat>
-               ("Bits_B_MOD",
+               (juce::ParameterID("Bits_B_MOD", 1),
                 "Bits_B_MOD",
                 selfFM_AmountRange, // using just because it's [0..1]
                 0.f),
            std::make_unique<AudioParameterFloat>
-               ("Cutoff_MOD",
+               (juce::ParameterID("Cutoff_MOD", 1),
                 "Cutoff_MOD",
                 selfFM_AmountRange, // using just because it's [0..1]
                 0.f),
            std::make_unique<AudioParameterFloat>
-               ("Resonance_MOD",
+               (juce::ParameterID("Resonance_MOD", 1),
                 "Resonance_MOD",
                 selfFM_AmountRange, // using just because it's [0..1]
                 0.f),
            std::make_unique<AudioParameterInt>
-               ("Filter Type Left",
+               (juce::ParameterID("Filter Type Left", 1),
                 "Filter Type Left",
                 0, 3, 0),
            std::make_unique<AudioParameterInt>
-               ("Filter Type Right",
+               (juce::ParameterID("Filter Type Right", 1),
                 "Filter Type Right",
                 0, 3, 0)
            }
            )
 {
+	csg_synth.setCurrentPlaybackSampleRate(44100.f);
     csg_synth.clearVoices();
     csg_synth.addVoice(new CSGVoice);   // MONOPHONIC BEAST.
     csg_synth.clearSounds();
