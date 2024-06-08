@@ -99,6 +99,7 @@ public:
     void renderNextBlock (AudioBuffer<float> &outputBuffer, int startSample, int numSamples) override
     {
 		svf.setBlockSize(numSamples);
+		oneOverBlockSize = 1.f / static_cast<float>(numSamples);
         // was in sample for loop
         //unit._freq = frequency / oversample_factor;   // 2X oversampling
         unit._freq = frequency;
