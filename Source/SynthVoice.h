@@ -223,7 +223,7 @@ public:
 
 private:
     double velocityLevel;
-    double frequency;
+	double frequency {110.0};
     float gate, preGain, amplitude;
     float vcf_outL, vcf_outR;
     float oneOverBlockSize;

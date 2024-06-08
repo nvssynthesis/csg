@@ -26,7 +26,8 @@ public:
     float phasor_fm(float sample);
     
     float _oneOverBlockSize;
-    double fs, fs_delta, _freq;
+	double fs, fs_delta;
+	double _freq {110.0};
     
     float getWave();
     
