@@ -17,6 +17,7 @@
       </GROUP>
       <FILE id="qq2pvv" name="CSG_dsp.cpp" compile="1" resource="0" file="Source/CSG_dsp.cpp"/>
       <FILE id="s3nrdj" name="CSG_dsp.h" compile="0" resource="0" file="Source/CSG_dsp.h"/>
+      <FILE id="CjkzIq" name="params.h" compile="0" resource="0" file="Source/params.h"/>
       <FILE id="yMFcXN" name="PluginEditor.cpp" compile="1" resource="0"
             file="Source/PluginEditor.cpp"/>
       <FILE id="e3GBZm" name="PluginProcessor.cpp" compile="1" resource="0"
@@ -26,6 +27,7 @@
       <FILE id="mTeQj4" name="SynthSound.h" compile="0" resource="0" file="Source/SynthSound.h"/>
       <FILE id="vWWr5D" name="PluginEditor.h" compile="0" resource="0" file="Source/PluginEditor.h"/>
       <FILE id="LZ4nIJ" name="SynthVoice.h" compile="0" resource="0" file="Source/SynthVoice.h"/>
+      <FILE id="cYgFCG" name="SynthVoice.cpp" compile="1" resource="0" file="Source/SynthVoice.cpp"/>
       <FILE id="wxFMxn" name="enclosure_medium.png" compile="0" resource="1"
             file="Source/enclosure_medium.png"/>
     </GROUP>

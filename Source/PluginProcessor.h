@@ -67,7 +67,7 @@ public:
 private:
     Synthesiser csg_synth;
     CSGVoice* csg_voice;
-    
+	
     double lastSampleRate;
     float Last_Self_FM, Last_Memory, Last_FM_Smooth, Last_Bits_A,
         Last_PM_Preamp, Last_PM_Smooth, Last_Sin2Cos, Last_Bits_B,

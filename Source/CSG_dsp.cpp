@@ -9,7 +9,6 @@
 */
 
 #include "CSG_dsp.h"
-//#include <iostream>
 
 csg::csg()
     : _oneOverBlockSize(0.0009765625f), _freq(110.f), _phase(0.f), memory(2.f), output(0.f), bits1(2048.f), bits2(2048.f), zLine(1, 32)
@@ -35,6 +34,16 @@ void csg::setSampleRate(float sample_rate)
     PM_filter.setSampleRate(sample_rate);
     dc_b.setSampleRate(sample_rate);
 }
+
+void csg::setCurrentBlockSize(int effectiveBlockSize) {
+	_oneOverBlockSize = 1.f / static_cast<float>(effectiveBlockSize);
+}
+
+void csg::setFrequency(float newFreq){
+	assert(newFreq < (fs * 0.5) && newFreq > 0.0);
+	_freq = newFreq;
+}
+
 void csg::clearDelay()
 {
     //zLength = (sizeof(zLine)/sizeof(*zLine));

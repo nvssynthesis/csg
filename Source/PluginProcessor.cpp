@@ -175,7 +175,7 @@ parameters(*this,
            }
            )
 {
-	csg_synth.setCurrentPlaybackSampleRate(44100.f);
+	csg_synth.setCurrentPlaybackSampleRate(44100.f); 
     csg_synth.clearVoices();
     csg_synth.addVoice(new CSGVoice);   // MONOPHONIC BEAST.
     csg_synth.clearSounds();
@@ -256,19 +256,15 @@ void CsgAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
     lastSampleRate = sampleRate;
     csg_synth.setCurrentPlaybackSampleRate(lastSampleRate);
 
-    // you need the extra parentheses to avoid a warning about
-    // '=' vs. '=='.
+    // you need the extra parentheses to avoid a warning "Using the result of an assignment as a condition without parentheses"
     if ((csg_voice = dynamic_cast<CSGVoice*>(csg_synth.getVoice(0))))
     {
         csg_voice->unit.setSampleRate(lastSampleRate);
-        csg_voice->unit._oneOverBlockSize = oneOverBlockSize;
         csg_voice->svf.setSampleRate(lastSampleRate);
         csg_voice->svf.clear();
-        csg_voice->env.setBlockSize(samplesPerBlock);
         csg_voice->env.setRise(0.01f);
         csg_voice->env.setFall(0.01f);
         csg_voice->lfo.setSampleRate(lastSampleRate);
-        //csg_voice->startNote(64, 100, juce::SynthesiserSound *sound, int currentPitchWheelPosition)
     }
 }
 
