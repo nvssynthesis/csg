@@ -35,7 +35,7 @@ public:
 	 TODO: figure out better schema for coupling direct params and their modulation counterparts, and make raw values private
 	 */
     float selfFM_target, memory_target, FM_smooth_target, bits1_target,
-            PM_preamp_target, PM_sin2cos_target, bits2_target, PM_smooth_target;
+            PM_preamp_target, PM_sin2cos_target, bits2_target, PM_smooth_target; 
     
     float _selfFM_MOD, _FM_smooth_MOD, _bits_A_MOD, _PM_preamp_MOD, _PM_sin2cos_MOD, _bits_B_MOD, _PM_smooth_MOD;
 

@@ -119,7 +119,8 @@ float csg::getWave()
     
     // on other hand, take sin and cos of phasor to do phase modulation (what will basically sound like wavefolding).
     // we can fade between the sin and cos parts with equal power.
-    weighted_sincos = ((trig_tables.up_sin_LUT(_phase) *  sqrt(1.f - (PM_sin2cos + _PM_sin2cos_MOD))) + (trig_tables.up_cos_LUT(_phase * 2.f - 1.f) * sqrt(PM_sin2cos + _PM_sin2cos_MOD))) * (PM_preamp + _PM_preamp_MOD);
+    weighted_sincos = ((trig_tables.up_sin_LUT(_phase) *  sqrt(1.f - (PM_sin2cos + _PM_sin2cos_MOD))) +
+					   (trig_tables.up_cos_LUT(_phase * 2.f - 1.f) * sqrt(PM_sin2cos + _PM_sin2cos_MOD))) * (PM_preamp + _PM_preamp_MOD);
     
     // now, bitcrush and filter that signal.
 	PM_filter.setCutoff(PM_smooth);	// not smoothed currently
@@ -144,10 +145,9 @@ float csg::getWave()
     if (wp > zLength)
         wp = 0;
 
-    
     // now take the sin of the summed signals! this is the CSG.
-    output = (float)trig_tables.bp_sin_LUT(wrap<float>(junction, -1.f, 1.f));
-    
+	output = nvs::memoryless::padeSin(junction * M_PI);
+
     zLine.setSample(0, wp, output);
 
     return output;

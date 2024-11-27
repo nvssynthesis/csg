@@ -12,9 +12,9 @@
 #include "PluginEditor.h"
  
 //==========================================================================
-CsgAudioProcessor::CsgAudioProcessor()
+CsgAudioProcessor::CsgAudioProcessor() :
 #ifndef JucePlugin_PreferredChannelConfigurations
-     : AudioProcessor (BusesProperties()
+     AudioProcessor (BusesProperties()
                      #if ! JucePlugin_IsMidiEffect
                       #if ! JucePlugin_IsSynth
                        .withInput  ("Input",  AudioChannelSet::stereo(), true)

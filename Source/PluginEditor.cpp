@@ -345,6 +345,10 @@ void CsgAudioProcessorEditor::paint (Graphics& g)
 {   // let's make this plugin feel like a DIY noise synth
     Image background = ImageCache::getFromMemory (BinaryData::enclosure_medium_png, BinaryData::enclosure_medium_pngSize);
     g.drawImageAt (background, 0, 0);
+	g.setColour(Colours::white);
+	if (JUCE_DEBUG){
+		g.drawText("debug", 1, 1, 100, 10, Justification::topLeft);
+	}
 }
 
 void CsgAudioProcessorEditor::resized()
