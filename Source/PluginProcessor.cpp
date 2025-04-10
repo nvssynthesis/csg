@@ -462,12 +462,27 @@ void CsgAudioProcessor::getStateInformation (MemoryBlock& destData)
     // You should use this method to store your parameters in the memory block.
     // You could do that either as raw data, or use the XML or ValueTree classes
     // as intermediaries to make it easy to save and load complex data.
+	juce::ValueTree stateTree = parameters.copyState();
+	
+	std::unique_ptr<juce::XmlElement> xml = stateTree.createXml();
+	
+	if (xml != nullptr)
+		juce::AudioProcessor::copyXmlToBinary(*xml, destData);
 }
 
 void CsgAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
 {
     // You should use this method to restore your parameters from this memory block,
     // whose contents will have been created by the getStateInformation() call.
+	std::unique_ptr<juce::XmlElement> xml = juce::AudioProcessor::getXmlFromBinary(data, sizeInBytes);
+	
+	if (xml != nullptr)
+	{
+		juce::ValueTree stateTree = juce::ValueTree::fromXml(*xml);
+		
+		if (stateTree.isValid())
+			parameters.replaceState(stateTree);
+	}
 }
 
 //==========================================================================
