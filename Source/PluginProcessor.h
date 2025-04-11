@@ -56,6 +56,9 @@ public:
     //==============================================================================
     void getStateInformation (MemoryBlock& destData) override;
     void setStateInformation (const void* data, int sizeInBytes) override;
+	
+	juce::AudioProcessorValueTreeState &getAPVTS();
+
 
     NormalisableRange<float> selfFM_AmountRange, memoryRange, PM_preamp_range, sin2cosRange, smoothingRange, BitsRange,
         slewRange, droneRange, cutoffRange, resRange, lfoSpeedRange, lfoWaveRange, /*,
@@ -63,11 +66,11 @@ public:
     filterTypeRange;
     float oneOverBlockSize;
     
-    AudioProcessorValueTreeState parameters;
 private:
     Synthesiser csg_synth;
     CSGVoice* csg_voice;
-	
+	AudioProcessorValueTreeState apvts;
+
     double lastSampleRate;
     float Last_Self_FM, Last_Memory, Last_FM_Smooth, Last_Bits_A,
         Last_PM_Preamp, Last_PM_Smooth, Last_Sin2Cos, Last_Bits_B,
@@ -82,3 +85,5 @@ private:
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (CsgAudioProcessor)
 };
+
+juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout();

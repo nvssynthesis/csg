@@ -26,9 +26,6 @@ public:
     float phasor();
     float phasor_fm(float sample);
 	float getWave();
-
-	
-
     
 public:
 	/*
