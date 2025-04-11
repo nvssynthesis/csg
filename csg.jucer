@@ -5,7 +5,7 @@
               pluginName="CSG" pluginDesc="Curl and Skew Generator" displaySplashScreen="1"
               jucerFormatVersion="1" headerPath="../../nvs_libraries&#10;../../Sprout"
               cppLanguageStandard="20" pluginFormats="buildAU,buildStandalone,buildVST3"
-              pluginManufacturerCode="Nvss" pluginCode="Csgs" pluginChannelConfigs="{0, 1}, {0, 2}"
+              pluginManufacturerCode="Nvss" pluginCode="Csgs" pluginChannelConfigs="{1, 1}, {2, 2}"
               version="0.1.0">
   <MAINGROUP id="eGLGw9" name="csg">
     <GROUP id="{69A94108-40CB-F911-8559-A14C4205D062}" name="Source">
@@ -38,8 +38,7 @@
     <XCODE_MAC targetFolder="Builds/MacOSX" extraDefs="_LIBCPP_ENABLE_CXX20_REMOVED_TYPE_TRAITS&#10;H_ONLY"
                xcodeValidArchs="arm64">
       <CONFIGURATIONS>
-        <CONFIGURATION isDebug="1" name="Debug" macOSDeploymentTarget="13.0" osxCompatibility="13.0 SDK"
-                       targetName="csg_dbg"/>
+        <CONFIGURATION isDebug="1" name="Debug" macOSDeploymentTarget="13.0" osxCompatibility="13.0 SDK"/>
         <CONFIGURATION isDebug="0" name="Release"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
