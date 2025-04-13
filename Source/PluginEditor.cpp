@@ -22,7 +22,7 @@ CsgAudioProcessorEditor::CsgAudioProcessorEditor (CsgAudioProcessor& p)
 	juce::Array<const AudioProcessorParameterGroup*> subgroups = paramTree.getSubgroups(false);
 	for (auto const *paramGroup : subgroups){
 		if (paramGroup->getID().equalsIgnoreCase("MAIN_PARAMS")){
-			for (AudioProcessorParameter const *param : paramGroup->getParameters(false)){
+			for (AudioProcessorParameter const *param : paramGroup->getParameters(true)){
 				if (juce::RangedAudioParameter const *rap = dynamic_cast<juce::RangedAudioParameter const*>(param)){
 					sliders.push_back(std::make_unique<ModulatedSlider>(apvts, *rap));
 				}
