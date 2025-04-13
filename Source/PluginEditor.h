@@ -78,7 +78,7 @@ struct ModulatedSlider	:	public juce::Component
 	_baseSlider(),
 	_baseAttachment(apvts, param.getParameterID(), _baseSlider),
 	_modulationSlider(),
-	_modulationAttachment(apvts, nvs::param::getBaseIDFromModPID(param.getParameterID()), _modulationSlider),
+	_modulationAttachment(apvts, nvs::param::makeModID(param.getParameterID()), _modulationSlider),
 	_paramName(param.getName(20))
 	{
 		setupSlider(apvts, param.getParameterID(), _baseSlider);
@@ -89,7 +89,7 @@ struct ModulatedSlider	:	public juce::Component
 		_baseSlider.setColour(Slider::ColourIds::textBoxTextColourId, juce::Colours::lightgrey);
 		_baseSlider.setNumDecimalPlacesToDisplay(numDecimalPlacesToDisplay);
 		
-		setupSlider(apvts, nvs::param::getBaseIDFromModPID(param.getParameterID()), _modulationSlider);
+		setupSlider(apvts, nvs::param::makeModID(param.getParameterID()), _modulationSlider);
 		_modulationSlider.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
 		_modulationSlider.setTextBoxStyle(juce::Slider::NoTextBox, true, 10, 10);
 		
@@ -105,10 +105,29 @@ struct ModulatedSlider	:	public juce::Component
 		addAndMakeVisible(_modulationSlider);
 		addAndMakeVisible(_label);
 	}
-	void resized() override {
-		auto const b = getLocalBounds();
-		_baseSlider.setBounds(b.getX(), b.getY(), b.getWidth(), b.getHeight());
+	void resized()
+	{
+		auto area = getLocalBounds().toFloat();
+
+		float totalH = area.getHeight();
+		float labelH  = totalH * 0.06f;
+		float baseH   = totalH * 0.7f;
+		float modH   = totalH - labelH - baseH;
+
+		using namespace juce;
+		FlexBox flex;
+
+		flex.flexDirection  = FlexBox::Direction::column;     		// vertical main axis
+		flex.alignItems     = FlexBox::AlignItems::stretch;   		// stretch to full width
+		flex.justifyContent = FlexBox::JustifyContent::flexStart; 	// start at top
+
+		flex.items.add ( FlexItem (_label)           .withFlex (0.0f, 0.0f, labelH)  );
+		flex.items.add ( FlexItem (_baseSlider)       .withFlex (0.0f, 0.0f, baseH) );
+		flex.items.add ( FlexItem (_modulationSlider).withFlex (0.0f, 0.0f, modH)  );
+
+		flex.performLayout (area);
 	}
+
 	
 	Slider _baseSlider;
 	SliderAttachment _baseAttachment;

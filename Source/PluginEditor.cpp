@@ -72,8 +72,9 @@ void CsgAudioProcessorEditor::paint (Graphics& g)
 
 void CsgAudioProcessorEditor::resized()
 {
+	const auto topPad = 20;
 	const int pad = 10;
-	auto area = getLocalBounds().reduced(pad).toFloat();
+	auto area = getLocalBounds().withTrimmedLeft(pad).withTrimmedRight(pad).withTrimmedBottom(pad).withTrimmedTop(topPad).toFloat();
 
 	const int numRows       = 2;
 	const int numSliders    = (int) sliders.size();
