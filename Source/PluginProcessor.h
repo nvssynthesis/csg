@@ -10,9 +10,10 @@
 
 #pragma once
 
-#include "../JuceLibraryCode/JuceHeader.h"
+#include <JuceHeader.h>
 #include "SynthSound.h"
 #include "SynthVoice.h"
+#include "params.h"
 
 //==============================================================================
 /**
@@ -57,30 +58,15 @@ public:
     void getStateInformation (MemoryBlock& destData) override;
     void setStateInformation (const void* data, int sizeInBytes) override;
 	
-	juce::AudioProcessorValueTreeState &getAPVTS();
+	[[deprecated]] juce::AudioProcessorValueTreeState &getAPVTS();
 
-
-    NormalisableRange<float> selfFM_AmountRange, memoryRange, PM_preamp_range, sin2cosRange, smoothingRange, BitsRange,
-        slewRange, droneRange, cutoffRange, resRange, lfoSpeedRange, lfoWaveRange, /*,
-    selfFMMODRange, PM_preampMODrange, sin2cosMODRange, smoothingMODRange, BitsMODRange*/
-    filterTypeRange;
     float oneOverBlockSize;
-    
 private:
     Synthesiser csg_synth;
     CSGVoice* csg_voice;
-	AudioProcessorValueTreeState apvts;
+	nvs::param::Params params;
 
     double lastSampleRate;
-    float Last_Self_FM, Last_Memory, Last_FM_Smooth, Last_Bits_A,
-        Last_PM_Preamp, Last_PM_Smooth, Last_Sin2Cos, Last_Bits_B,
-        Last_Drone, Last_Rise, Last_Fall, Last_Cutoff, Last_Resonance,
-        Last_lfoSpeed, Last_lfoWave,
-        Last_MODselfFM, Last_MODMemory, Last_MODFMsmooth, Last_MODBits_A,
-        Last_MODPM_preamp, Last_MODPMsmooth, Last_MODSin2Cos, Last_MODBits_B,
-        Last_MODCutoff, Last_MODResonance;
-    
-    int Last_FilterTypeLeft, Last_FilterTypeRight;
     
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (CsgAudioProcessor)
