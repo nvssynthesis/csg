@@ -200,8 +200,10 @@ private:
 				JPID{ paramToID(pid), 1 },
 				paramToName(pid),
 				std::move(range),
-				defaultVal
-			);
+				defaultVal,
+				juce::AudioParameterFloatAttributes().withStringFromValueFunction([](float value, int maximumStringLength) {
+					return juce::String(value, 3);
+				}));
 		};
 		std::unique_ptr<AudioParameterGroup> FMParameterGroup = std::make_unique<AudioParameterGroup>(
 												groupToID(GroupID_e::FM), 	groupToName(GroupID_e::FM), "|",
