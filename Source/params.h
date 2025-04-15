@@ -54,39 +54,60 @@ inline juce::String groupToID(GroupID_e group) {
 	return s;
 }
 
-#define PARAM_LIST \
-X(SELF_FM)		\
-X(MEMORY)		\
-X(FM_SMOOTH)	\
-X(FM_DEGRADE)	\
-X(PM_AMOUNT)	\
-X(PM_TAME)		\
-X(PM_SHAPE)		\
-X(PM_DEGRADE)	\
-X(CUTOFF)		\
-X(RESONANCE)	\
-X(FILTER_TYPE_L)\
-X(FILTER_TYPE_R)\
-X(LFO_RATE)		\
-X(LFO_WAVE)		\
-X(DRONE)		\
-X(RISE)			\
-X(FALL)			\
-X(OUTPUT_GAIN)
+#define PARAM_LIST          \
+  X(SELF_FM)                \
+  X(MEMORY)                 \
+  X(FM_SMOOTH)              \
+  X(FM_DEGRADE)             \
+  X(PM_AMOUNT)              \
+  X(PM_TAME)                \
+  X(PM_SHAPE)               \
+  X(PM_DEGRADE)             \
+  X(CUTOFF)                 \
+  X(RESONANCE)              \
+  X(FILTER_TYPE_L)          \
+  X(FILTER_TYPE_R)          \
+  X(LFO_RATE)               \
+  X(LFO_WAVE)               \
+  X(DRONE)                  \
+  X(RISE)                   \
+  X(FALL)                   \
+  X(SELF_FM_MOD)            \
+  X(MEMORY_MOD)             \
+  X(FM_SMOOTH_MOD)          \
+  X(FM_DEGRADE_MOD)         \
+  X(PM_AMOUNT_MOD)          \
+  X(PM_TAME_MOD)            \
+  X(PM_SHAPE_MOD)           \
+  X(PM_DEGRADE_MOD)         \
+  X(CUTOFF_MOD)             \
+  X(RESONANCE_MOD)          \
+  X(FILTER_TYPE_L_MOD)      \
+  X(FILTER_TYPE_R_MOD)      \
+  X(LFO_RATE_MOD)           \
+  X(LFO_WAVE_MOD)           \
+  X(DRONE_MOD)              \
+  X(RISE_MOD)               \
+  X(FALL_MOD)               \
+  Y(OUTPUT_GAIN)
 
 enum class PID_e : size_t {
-#define X(sym) sym,
+#define X(name) name,
+#define Y(name) name,
 	PARAM_LIST
-#undef X
 	NUM_PARAMS
 };
+#undef X
+#undef Y
 
-inline juce::String paramToName(PID_e id) {
+inline juce::String paramToID(PID_e id) {
 	switch (id)
 	{
 #define X(sym) case PID_e::sym: return #sym;
+#define Y(name)
 		PARAM_LIST
 #undef X
+#undef Y
 		default: return {};
 	}
 }
@@ -96,8 +117,8 @@ inline juce::String replaceUnderscores(juce::String str) {
 	return str;
 }
 
-inline juce::String paramToID(PID_e id){
-	return replaceUnderscores(paramToName(id));
+inline juce::String paramToName(PID_e id){
+	return replaceUnderscores(paramToID(id));
 }
 
 static juce::String makeModID(juce::String paramID){
@@ -272,6 +293,33 @@ private:
 		
 		return layout;
 	}
+};
+
+struct SmoothedParamsManager {
+	using PID_e = nvs::param::PID_e;
+
+	void reset (double sampleRate, int samplesPerBlock, juce::AudioProcessorValueTreeState& apvts) {
+		auto const rampTime = samplesPerBlock / sampleRate;
+		for (size_t i = 0; i < values.size(); ++i) {
+			values[i].reset (sampleRate, rampTime);
+			juce::String pid_str = nvs::param::paramToID((PID_e)(i));
+			values[i].setCurrentAndTargetValue(*apvts.getRawParameterValue(pid_str));
+		}
+	}
+
+	// call once per block
+	void updateTargets (juce::AudioProcessorValueTreeState& apvts) {
+		for (size_t i = 0; i < values.size(); ++i){
+			juce::String pid_str = nvs::param::paramToID((PID_e)(i));
+			values[i].setTargetValue(*apvts.getRawParameterValue (pid_str));
+		}
+	}
+
+	float getNextValue (PID_e id) noexcept {
+		return values[(size_t)id].getNextValue();
+	}
+private:
+	std::array<juce::SmoothedValue<float, juce::ValueSmoothingTypes::Linear>, (size_t)PID_e::NUM_PARAMS> values;
 };
 
 }	// namespace param

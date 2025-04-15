@@ -26,11 +26,12 @@ CsgAudioProcessor::CsgAudioProcessor() :
 
 params(*this)
 {
-	csg_synth.setCurrentPlaybackSampleRate(44100.f); 
-    csg_synth.clearVoices();
-    csg_synth.addVoice(new CSGVoice);   // MONOPHONIC BEAST.
-    csg_synth.clearSounds();
-    csg_synth.addSound(new CSGSound());
+	using namespace nvs::csg;
+	csgSynth.setCurrentPlaybackSampleRate(44100.f);
+    csgSynth.clearVoices();
+    csgSynth.addVoice(new nvs::csg::CSGVoice(&smoothedParams));   // MONOPHONIC BEAST.
+    csgSynth.clearSounds();
+    csgSynth.addSound(new nvs::csg::CSGSound());
 }
 
 CsgAudioProcessor::~CsgAudioProcessor()
@@ -102,20 +103,10 @@ void CsgAudioProcessor::changeProgramName (int index, const String& newName)
 //==========================================================================
 void CsgAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 {
-    //ignoreUnused(samplesPerBlock);
-    oneOverBlockSize = 1.f / samplesPerBlock;
-    lastSampleRate = sampleRate;
-    csg_synth.setCurrentPlaybackSampleRate(lastSampleRate);
+    csgSynth.setCurrentPlaybackSampleRate(sampleRate);
 
-    // you need the extra parentheses to avoid a warning "Using the result of an assignment as a condition without parentheses"
-    if ((csg_voice = dynamic_cast<CSGVoice*>(csg_synth.getVoice(0))))
-    {
-        csg_voice->unit.setSampleRate(lastSampleRate);
-        csg_voice->svf.setSampleRate(lastSampleRate);
-        csg_voice->svf.clear();
-        csg_voice->env.setRise(0.01f);
-        csg_voice->env.setFall(0.01f);
-        csg_voice->lfo.setSampleRate(lastSampleRate);
+	if (auto* csg_voice = dynamic_cast<nvs::csg::CSGVoice*>(csgSynth.getVoice(0))) {
+		csg_voice->prepareToPlay(sampleRate, samplesPerBlock);
     }
 }
 
@@ -154,13 +145,14 @@ void CsgAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer& mi
     ScopedNoDenormals noDenormals;
     buffer.clear ();
 
-    if ((csg_voice = dynamic_cast<CSGVoice*>(csg_synth.getVoice(0))))
+	smoothedParams.updateTargets(params.apvts);
+	if (auto* csg_voice = dynamic_cast<nvs::csg::CSGVoice*>(csgSynth.getVoice(0)))
     {
 		// update parameters
 //		params.apvts.state.begin()
     }
     //======================================================================
-    csg_synth.renderNextBlock(buffer, midiMessages, 0, buffer.getNumSamples());
+    csgSynth.renderNextBlock(buffer, midiMessages, 0, buffer.getNumSamples());
 }
 
 //==========================================================================

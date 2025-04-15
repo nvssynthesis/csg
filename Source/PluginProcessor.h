@@ -16,8 +16,7 @@
 #include "params.h"
 
 //==============================================================================
-/**
-*/
+
 class CsgAudioProcessor  : public AudioProcessor
 {
 public:
@@ -60,13 +59,10 @@ public:
 	
 	[[deprecated]] juce::AudioProcessorValueTreeState &getAPVTS();
 
-    float oneOverBlockSize;
 private:
-    Synthesiser csg_synth;
-    CSGVoice* csg_voice;
+    Synthesiser csgSynth;
 	nvs::param::Params params;
-
-    double lastSampleRate;
+	nvs::param::SmoothedParamsManager smoothedParams;
     
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (CsgAudioProcessor)

@@ -11,16 +11,18 @@
 #pragma once
 #include "../JuceLibraryCode/JuceHeader.h"
 
+namespace nvs::csg {
 class CSGSound    :   public SynthesiserSound
 {
 public:
-    bool appliesToNote(int midiNoteNumber)  override
-    {
-        return true;
-    }
-    bool appliesToChannel(int midiChannel)  override
-    {
-        return true;
-    }
+	bool appliesToNote(int midiNoteNumber)  override
+	{
+		return true;
+	}
+	bool appliesToChannel(int midiChannel)  override
+	{
+		return true;
+	}
 };
 
+}	// namespace nvs::csg

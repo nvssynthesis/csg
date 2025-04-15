@@ -9,63 +9,53 @@
 */
 
 #pragma once
-#include "../JuceLibraryCode/JuceHeader.h"
+#include <JuceHeader.h>
+#include "params.h"
 #include "SynthSound.h"
 #include "CSG_dsp.h"
 #include "nvs_libraries/include/nvs_LFO.h"
-//#include "src/nvs_LFO.cpp"
 #include "nvs_libraries/include/nvs_filters.h"
-//#include "src/nvs_filters.cpp"
 #define MINUS_NINE_DB 0.354813389233575
+
+namespace nvs::csg {
 
 class CSGVoice      :       public SynthesiserVoice
 {
 public:
-	CSGVoice();
+	explicit CSGVoice(nvs::param::SmoothedParamsManager *smoothedParams);
 	bool canPlaySound (SynthesiserSound* sound) override;
-    //===========================================================================
+	//===========================================================================
 	void startNote (int midiNoteNumber, float velocity, SynthesiserSound* sound, int currentPitchWheelPosition) override;
-    //===========================================================================
+	//===========================================================================
 	void stopNote (float velocity, bool allowTailOff) override;
 	void pitchWheelMoved (int newPitchWheelValue) override;
-    //===========================================================================
-	void controllerMoved (int controllerNumber, int newControllerValue) override;
+	void controllerMoved (int controllerNumber, int newControllerValue) override {}
+	//===========================================================================
 	void setCurrentPlaybackSampleRate(double newSampleRate) override;
-    //===========================================================================
+	//===========================================================================
 	void renderNextBlock (AudioBuffer<float> &outputBuffer, int startSample, int numSamples) override;
-    //===========================================================================
-    
-	
-public:
-	/*
-	 goal: make this section private
-	 */
-	csg unit;
-    nvssynthesis_lfo::simple_lfo<float> lfo;
-    nvs::filters::svf_nl_rk<float> svf;
-    nvs::filters::slewlim<float> env;
-    
-	float voice_drone, voice_droneCurrent,
-        voice_rise, voice_fall, voice_cutoff, voice_res;
-    float MODselfFM, MODMemory, MODFMsmooth, MODBits_A,
-        MODPM_preamp, MODPMsmooth, MODSin2Cos, MODBits_B,
-        MODCutoff, MODResonance;
-	
-    float last_lfo_freq, last_lfo_wave;
-    int filterTypeL, filterTypeR;
-    float env_currentVal;
+	//===========================================================================
+	void prepareToPlay(double sampleRate, int samplesPerBlock);
 
 private:
-    double velocityLevel;
+	double velocityLevel;
 	double frequency {110.0};
 	
-	juce::LinearSmoothedValue<float> cutoff_smoothed_;
-
-    float gate, preGain, amplitude;
-    float vcf_outL, vcf_outR;
-    float oneOverBlockSize;
-    
-    int oversample_factor;
-    
-	double csg_wave{0.0}, lfo_out{0.0};
+	nvs::param::SmoothedParamsManager *_smoothedParams;
+	
+	nvs::csg::CSG unit;
+	nvssynthesis_lfo::simple_lfo<float> lfo;
+	nvs::filters::svf_nl_rk<float> svf;
+	nvs::filters::slewlim<float> env;
+	
+	bool sampleRateValid() const;
+	
+	float gate;
+	// float preGain, amplitude;
+	float vcf_outL, vcf_outR;
+	float oneOverBlockSize;
+	
+	int oversample_factor;
 };
+
+}	//	namespace nvs::csg
