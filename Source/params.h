@@ -113,7 +113,7 @@ inline juce::String paramToID(PID_e id) {
 }
 
 inline juce::String replaceUnderscores(juce::String str) {
-	str.replace("_", " ");
+	str = str.replace("_", " ");
 	return str;
 }
 

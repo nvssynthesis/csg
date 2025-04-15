@@ -71,72 +71,21 @@ struct ModulatedSlider	:	public juce::Component
 	
 	ModulatedSlider(juce::AudioProcessorValueTreeState &apvts,
 					juce::RangedAudioParameter const &param,
-					int numDecimalPlacesToDisplay = 3,
+					String paramGroupName = "",
 					Slider::SliderStyle sliderStyle = juce::Slider::LinearBarVertical,
-					juce::Slider::TextEntryBoxPosition entryPos = juce::Slider::TextBoxBelow)
-	:
-	_baseSlider(),
-	_baseAttachment(apvts, param.getParameterID(), _baseSlider),
-	_modulationSlider(),
-	_modulationAttachment(apvts, nvs::param::makeModID(param.getParameterID()), _modulationSlider),
-	_paramName(param.getName(20))
-	{
-		setupSlider(apvts, param.getParameterID(), _baseSlider);
-		_baseSlider.setSliderStyle(sliderStyle);
-		_baseSlider.setTextBoxStyle(entryPos, false, 50, 25);
-
-		_baseSlider.setColour(Slider::ColourIds::thumbColourId, juce::Colours::palevioletred);
-		_baseSlider.setColour(Slider::ColourIds::textBoxTextColourId, juce::Colours::lightgrey);
-		_baseSlider.setNumDecimalPlacesToDisplay(numDecimalPlacesToDisplay);
-		
-		setupSlider(apvts, nvs::param::makeModID(param.getParameterID()), _modulationSlider);
-		_modulationSlider.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
-		_modulationSlider.setTextBoxStyle(juce::Slider::NoTextBox, true, 10, 10);
-		
-		_modulationSlider.setColour(Slider::ColourIds::thumbColourId, juce::Colours::palevioletred);
-		_modulationSlider.setColour(Slider::ColourIds::textBoxTextColourId, juce::Colours::lightgrey);
-		_modulationSlider.setNumDecimalPlacesToDisplay(numDecimalPlacesToDisplay);
-
-		_label.setFont({"Palatino", 13.f, 0});
-		_label.attachToComponent(&_baseSlider, false);
-		_label.setText(_paramName, dontSendNotification);
-		
-		addAndMakeVisible(_baseSlider);
-		addAndMakeVisible(_modulationSlider);
-		addAndMakeVisible(_label);
-	}
-	void resized()
-	{
-		auto area = getLocalBounds().toFloat();
-
-		float totalH = area.getHeight();
-		float labelH  = totalH * 0.1f;
-		float baseH   = totalH * 0.64f;
-		float modH   = totalH - labelH - baseH;
-
-		using namespace juce;
-		FlexBox flex;
-
-		flex.flexDirection  = FlexBox::Direction::column;     		// vertical main axis
-		flex.alignItems     = FlexBox::AlignItems::stretch;   		// stretch to full width
-		flex.justifyContent = FlexBox::JustifyContent::flexStart; 	// start at top
-
-		flex.items.add ( FlexItem (_label)           .withFlex (0.0f, 0.0f, labelH)  );
-		flex.items.add ( FlexItem (_baseSlider)       .withFlex (0.0f, 0.0f, baseH) );
-		flex.items.add ( FlexItem (_modulationSlider).withFlex (0.0f, 0.0f, modH)  );
-
-		flex.performLayout (area);
-	}
-
+					juce::Slider::TextEntryBoxPosition entryPos = juce::Slider::TextBoxBelow);
+	void resized();
+	String getParamName() const { return _paramName; }
+	String getParamGroupName() const { return _paramGroupName; }
 	
 	Slider _baseSlider;
 	SliderAttachment _baseAttachment;
 	Slider _modulationSlider;
 	SliderAttachment _modulationAttachment;
 	
-	String getParamName() const { return _paramName; }
 private:
 	String _paramName;
+	String _paramGroupName;
 	juce::Label _label;
 };
 
@@ -150,31 +99,13 @@ struct UtilityKnob	:	public juce::Component
 					juce::RangedAudioParameter const &param,
 					int numDecimalPlacesToDisplay = 3,
 					Slider::SliderStyle sliderStyle = juce::Slider::LinearBarVertical,
-					juce::Slider::TextEntryBoxPosition entryPos = juce::Slider::TextBoxBelow)
-	:
-	_slider(),
-	_attachment(apvts, param.getParameterID(), _slider),
-	_paramName(param.getName(20))
-	{
-		setupSlider(apvts, param.getParameterID(), _slider);
-		_slider.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
-		_slider.setTextBoxStyle(juce::Slider::TextBoxBelow, false, /* width */ 15, /* height */ 10);
-		_slider.setColour(Slider::ColourIds::thumbColourId, juce::Colours::grey);
-		_slider.setColour(Slider::ColourIds::trackColourId, juce::Colours::darkgrey);
-		_slider.setColour(Slider::ColourIds::textBoxTextColourId, juce::Colours::lightgrey);
-
-		_label.setFont({"Palatino", 10.f, 0});
-		_label.attachToComponent(&_slider, false);
-		_label.setText(_paramName, dontSendNotification);
-		
-		addAndMakeVisible(_slider);
-		addAndMakeVisible(_label);
-	}
+				juce::Slider::TextEntryBoxPosition entryPos = juce::Slider::TextBoxBelow);
 	
+	String getParamName() const { return _paramName; }
+
 	Slider _slider;
 	SliderAttachment _attachment;
 	
-	String getParamName() const { return _paramName; }
 private:
 	String _paramName;
 	juce::Label _label;
@@ -185,7 +116,6 @@ class CsgAudioProcessorEditor  : public AudioProcessorEditor
 {
 public:
     CsgAudioProcessorEditor (CsgAudioProcessor&);
-    ~CsgAudioProcessorEditor();
 
     //==============================================================================
     void paint (Graphics&) override;
@@ -198,6 +128,10 @@ private:
     
 	std::vector<std::unique_ptr<ModulatedSlider>> sliders;
 	std::vector<std::unique_ptr<UtilityKnob>> knobs;
-
+	
+	std::vector<juce::Rectangle<float>> groupAreas;
+	
+	Image backgroundImage;
+	
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (CsgAudioProcessorEditor)
 };

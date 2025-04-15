@@ -13,6 +13,95 @@
 #include "BinaryData.h"
 
 //==============================================================================
+
+ModulatedSlider::ModulatedSlider(juce::AudioProcessorValueTreeState &apvts,
+					juce::RangedAudioParameter const &param,
+					String paramGroupName,
+					Slider::SliderStyle sliderStyle,
+					juce::Slider::TextEntryBoxPosition entryPos)
+:
+	_baseSlider(),
+	_baseAttachment(apvts, param.getParameterID(), _baseSlider),
+	_modulationSlider(),
+	_modulationAttachment(apvts, nvs::param::makeModID(param.getParameterID()), _modulationSlider),
+	_paramName(param.getName(20)),
+	_paramGroupName(paramGroupName)
+{
+	setupSlider(apvts, param.getParameterID(), _baseSlider);
+	_baseSlider.setSliderStyle(sliderStyle);
+	_baseSlider.setTextBoxStyle(entryPos, false, 50, 25);
+
+	_baseSlider.setColour(Slider::ColourIds::thumbColourId, juce::Colours::palevioletred);
+	_baseSlider.setColour(Slider::ColourIds::textBoxTextColourId, juce::Colours::lightgrey);
+	
+	setupSlider(apvts, nvs::param::makeModID(param.getParameterID()), _modulationSlider);
+	_modulationSlider.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
+	_modulationSlider.setTextBoxStyle(juce::Slider::NoTextBox, true, 10, 10);
+	
+	_modulationSlider.setColour(Slider::ColourIds::thumbColourId, juce::Colours::palevioletred);
+	_modulationSlider.setColour(Slider::ColourIds::textBoxTextColourId, juce::Colours::lightgrey);
+
+	_label.setFont({"Palatino", 13.f, 0});
+	_label.attachToComponent(&_baseSlider, false);
+	_label.setText(_paramName, dontSendNotification);
+	
+	addAndMakeVisible(_baseSlider);
+	addAndMakeVisible(_modulationSlider);
+	addAndMakeVisible(_label);
+}
+
+void ModulatedSlider::resized()
+{
+	int const pad = 10;
+	auto area = getLocalBounds().reduced(pad).toFloat();
+
+	float totalH = area.getHeight();
+	float labelH  = totalH * 0.1f;
+	float baseH   = totalH * 0.64f;
+	float modH   = totalH - labelH - baseH;
+
+	using namespace juce;
+	FlexBox flex;
+
+	flex.flexDirection  = FlexBox::Direction::column;     		// vertical main axis
+	flex.alignItems     = FlexBox::AlignItems::stretch;   		// stretch to full width
+	flex.justifyContent = FlexBox::JustifyContent::flexStart; 	// start at top
+
+	flex.items.add ( FlexItem (_label)           .withFlex (0.0f, 0.0f, labelH)  );
+	flex.items.add ( FlexItem (_baseSlider)       .withFlex (0.0f, 0.0f, baseH) );
+	flex.items.add ( FlexItem (_modulationSlider).withFlex (0.0f, 0.0f, modH)  );
+
+	flex.performLayout (area);
+}
+
+UtilityKnob::UtilityKnob(juce::AudioProcessorValueTreeState &apvts,
+					juce::RangedAudioParameter const &param,
+					int numDecimalPlacesToDisplay,
+					Slider::SliderStyle sliderStyle,
+					juce::Slider::TextEntryBoxPosition entryPos)
+	:
+	_slider(),
+	_attachment(apvts, param.getParameterID(), _slider),
+	_paramName(param.getName(20))
+	{
+		setupSlider(apvts, param.getParameterID(), _slider);
+		_slider.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
+		_slider.setTextBoxStyle(juce::Slider::TextBoxBelow, false, /* width */ 15, /* height */ 10);
+		_slider.setColour(Slider::ColourIds::thumbColourId, juce::Colours::grey);
+		_slider.setColour(Slider::ColourIds::trackColourId, juce::Colours::darkgrey);
+		_slider.setColour(Slider::ColourIds::textBoxTextColourId, juce::Colours::lightgrey);
+
+		_label.setFont({"Palatino", 10.f, 0});
+		_label.attachToComponent(&_slider, false);
+		_label.setText(_paramName, dontSendNotification);
+		
+		addAndMakeVisible(_slider);
+		addAndMakeVisible(_label);
+	}
+
+//==============================================================================
+
+
 CsgAudioProcessorEditor::CsgAudioProcessorEditor (CsgAudioProcessor& p)
     : AudioProcessorEditor (&p), processor (p)
 {
@@ -22,9 +111,11 @@ CsgAudioProcessorEditor::CsgAudioProcessorEditor (CsgAudioProcessor& p)
 	juce::Array<const AudioProcessorParameterGroup*> subgroups = paramTree.getSubgroups(false);
 	for (auto const *paramGroup : subgroups){
 		if (paramGroup->getID().equalsIgnoreCase("MAIN_PARAMS")){
-			for (AudioProcessorParameter const *param : paramGroup->getParameters(true)){
-				if (juce::RangedAudioParameter const *rap = dynamic_cast<juce::RangedAudioParameter const*>(param)){
-					sliders.push_back(std::make_unique<ModulatedSlider>(apvts, *rap));
+			for (AudioProcessorParameterGroup const *paramSubGroup : paramGroup->getSubgroups(false)){
+				for (AudioProcessorParameter const *param : paramSubGroup->getParameters(false)){
+					if (juce::RangedAudioParameter const *rap = dynamic_cast<juce::RangedAudioParameter const*>(param)){
+						sliders.push_back(std::make_unique<ModulatedSlider>(apvts, *rap, paramSubGroup->getName()));
+					}
 				}
 			}
 		}
@@ -51,54 +142,134 @@ CsgAudioProcessorEditor::CsgAudioProcessorEditor (CsgAudioProcessor& p)
 		addAndMakeVisible(k.get());
 	}
 	
-	setSize (640, 432);
-}
+	backgroundImage = ImageCache::getFromMemory (BinaryData::enclosure_medium_png,
+												 BinaryData::enclosure_medium_pngSize);
+	
+	double const bg_w = backgroundImage.getWidth();
+	double const bg_h = backgroundImage.getHeight();
 
-CsgAudioProcessorEditor::~CsgAudioProcessorEditor()
-{
- 
+	setResizable (true, true);
+	setResizeLimits (bg_w / 2, bg_h / 2, bg_w * 2, bg_h * 2);
+
+	auto const ratio = bg_w / bg_h;
+	getConstrainer()->setFixedAspectRatio(ratio);
+
+	setSize (bg_w, bg_h);
 }
 
 //==============================================================================
 void CsgAudioProcessorEditor::paint (Graphics& g)
 {   // let's make this plugin feel like a DIY noise synth
-    Image background = ImageCache::getFromMemory (BinaryData::enclosure_medium_png, BinaryData::enclosure_medium_pngSize);
-    g.drawImageAt (background, 0, 0);
+	
+	g.setImageResamplingQuality (Graphics::highResamplingQuality);
+	g.drawImage (backgroundImage,
+				 /*dest*/    0, 0, getWidth(), getHeight(),
+				 /*source*/  0, 0, backgroundImage.getWidth(),
+							 backgroundImage.getHeight(),
+				 /*alpha*/  false);
+	
 	g.setColour(Colours::white);
 #ifdef JUCE_DEBUG
 	g.drawText("debug", 1, 1, 100, 10, Justification::topLeft);
 #endif
+	
+	g.setColour (findColour (juce::GroupComponent::outlineColourId));
+	
+	for (auto& area : groupAreas){
+		g.drawRect (area.toNearestInt(), 1);  // 1px thick
+	}
 }
 
 void CsgAudioProcessorEditor::resized()
 {
-	const auto topPad = 20;
-	const int pad = 10;
-	auto area = getLocalBounds().withTrimmedLeft(pad).withTrimmedRight(pad).withTrimmedBottom(pad).withTrimmedTop(topPad).toFloat();
+	const auto topPad = 23;
+	const int  pad    = 5;
 
-	const int numRows       = 2;
-	const int numSliders    = (int) sliders.size();
-	const int itemsPerRow   = (numSliders + numRows - 1) / numRows;  // ceil(N/2)
-	const float rowHeight   = area.getHeight() / (float) numRows;
+	// clear out last frame’s group‑areas
+	groupAreas.clear();
 
-	using namespace juce;
+	// carve off overall padding
+	auto area = getLocalBounds()
+					.withTrimmedLeft  (pad)
+					.withTrimmedRight (pad)
+					.withTrimmedBottom(pad)
+					.withTrimmedTop   (topPad)
+					.toFloat();
 
-	for (int row = 0; row < numRows; ++row)
-	{
-		// carve off the top rowHeight from our area
-		auto rowArea = area.removeFromTop(rowHeight);
+	// split into equal‐height rows
+	const float rowHeight = area.getHeight() * 0.5f;
+	auto topArea = area.removeFromTop(rowHeight);
+	auto bottomArea = area;
 
-		FlexBox flex;
-		flex.flexDirection  = FlexBox::Direction::row;
-		flex.justifyContent = FlexBox::JustifyContent::spaceBetween;
-		flex.alignItems     = FlexBox::AlignItems::stretch;
+	// define rows by group substring
+	const std::vector<juce::String> topGroups    { "FM",     "PM"        };
+	const std::vector<juce::String> bottomGroups { "FILTER", "LFO", "ENV" };
 
-		int startIndex = row * itemsPerRow;
-		int endIndex   = jmin(startIndex + itemsPerRow, numSliders);
+	auto layoutRow = [&](juce::Rectangle<float> rowArea,
+						 const std::vector<juce::String>& groups) {
+		// weights per param group
+		std::vector<float> weights;
+		for (auto& groupName : groups) {
+			if      (groupName == "FILTER") weights.push_back (1.2f);
+			else if (groupName == "ENV")    weights.push_back (1.0f);
+			else if (groupName == "LFO")    weights.push_back (0.7f);
+			else                             weights.push_back (1.0f);
+		}
 
-		for (int i = startIndex; i < endIndex; ++i)
-			flex.items.add ( FlexItem (*sliders[i]).withFlex (1, 1) );
+		float totalWeight = std::accumulate (weights.begin(), weights.end(), 0.0f);
 
-		flex.performLayout (rowArea);
-	}
+		// slice groups proportionally
+		for (size_t i = 0; i < groups.size(); ++i) {
+			auto& groupName = groups[i];
+			float  w         = weights[i];
+
+			// carve off the proportional slice
+			float sliceW   = rowArea.getWidth() * (w / totalWeight);
+			auto  groupArea = rowArea.removeFromLeft (sliceW);
+
+			// remember for border‑drawing
+			groupAreas.push_back (groupArea);
+
+			// ---- now compute a skinnyWidth based on this slice ----
+			const float typeWidthRatio = 0.17f;
+			const float skinnyWidth    = groupArea.getWidth() * typeWidthRatio;
+
+			// 3) build the group’s FlexBox
+			juce::FlexBox flex;
+			flex.flexDirection  = juce::FlexBox::Direction::row;
+			flex.justifyContent = juce::FlexBox::JustifyContent::flexStart;
+			flex.alignItems     = juce::FlexBox::AlignItems::stretch;
+			flex.flexWrap       = juce::FlexBox::Wrap::noWrap;
+
+			// collect sliders in this group
+			std::vector<ModulatedSlider*> groupSliders;
+			for (auto& s : sliders) {
+				if (s->getParamGroupName().contains (groupName)) {
+					groupSliders.push_back (s.get());
+				}
+			}
+			// add them, using the proportional skinnyWidth for TYPE
+			for (auto* slider : groupSliders) {
+				if (slider->getParamName().contains ("TYPE")) {	// filter type selector slider
+					flex.items.add ( juce::FlexItem (*slider)
+										 .withFlex     (0, 0)
+										 .withMinWidth (skinnyWidth)
+										 .withMaxWidth (skinnyWidth) );
+				}
+				else {
+					flex.items.add ( juce::FlexItem (*slider)
+										 .withFlex (1.0f, 1.0f) );
+				}
+			}
+
+			// subtract current group’s weight so the next slice is still proportional
+			totalWeight -= w;
+
+			flex.performLayout (groupArea);
+		}
+	};
+
+	layoutRow (topArea,    topGroups);
+	layoutRow (bottomArea, bottomGroups);
 }
+
