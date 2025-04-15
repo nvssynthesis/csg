@@ -110,8 +110,8 @@ struct ModulatedSlider	:	public juce::Component
 		auto area = getLocalBounds().toFloat();
 
 		float totalH = area.getHeight();
-		float labelH  = totalH * 0.06f;
-		float baseH   = totalH * 0.7f;
+		float labelH  = totalH * 0.1f;
+		float baseH   = totalH * 0.64f;
 		float modH   = totalH - labelH - baseH;
 
 		using namespace juce;
