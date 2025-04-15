@@ -97,8 +97,24 @@ float CSG::getWave()
 	// take last output, get derivative, variably lowpass it to smoothen, and amplify it based on FM mod amount.
 	// feedback = FM_filter.tpt_lp((output - z2) * (fs * 0.000021) * pow((clamp<float>(selfFM + _selfFM_MOD, 0.f, 1.f) * 29), 3.f), clamp<float>(FM_smooth + (FM_smooth * _FM_smooth_MOD * 3.f), 20.f, 20000.f));
 #pragma warning("dc_b is used twice, which does not make sense for an iir filter because the state between calls will be changed")
-	float fedback_delta = dc_b.filter(dc_b.filter(zLine.getSample(0, rp) - zLine.getSample(0, rp_neighbor)));
-	//    float fedback_delta = dc_b.filter(zLine.getSample(0, rp));
+	int feedback_algo = 0;
+	
+	float fedback_delta =
+	[&](int algo){
+		switch (feedback_algo) {
+			case 0:
+				return dc_b.filter(zLine.getSample(0, rp));
+			case 1:
+				return dc_b.filter(zLine.getSample(0, rp) - zLine.getSample(0, rp_neighbor));
+			case 2:
+				return dc_b.filter(dc_b.filter(zLine.getSample(0, rp)));
+			case 3:
+				return dc_b.filter(dc_b.filter(zLine.getSample(0, rp) - zLine.getSample(0, rp_neighbor)));
+			default:
+				return 0.f;
+		}
+	}(feedback_algo);
+
 	float feedback_amt = (clamp<float>(selfFM + _selfFM_MOD, 0.0f, 1.f) * 24000.f);
 	float feedback_cutoff = clamp<float>(FM_smooth + (FM_smooth * _FM_smooth_MOD * 3.f), 20.f, 20000.f);
 	
