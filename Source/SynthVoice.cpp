@@ -110,7 +110,10 @@ void CSGVoice::renderNextBlock (AudioBuffer<float> &outputBuffer, int startSampl
 		
 		unit._PM_sin2cos_MOD = lfo_out * _smoothedParams->getNextValue(PID_e::PM_SHAPE_MOD);
 		
-		svf.setCutoff(_smoothedParams->getNextValue(PID_e::CUTOFF));
+		auto const cutoffMod = nvs::midiToHertz(lfo_out * _smoothedParams->getNextValue(PID_e::CUTOFF_MOD) * 127.0);
+		auto const cutoff = jlimit(10.0, 22000.0, cutoffMod + _smoothedParams->getNextValue(PID_e::CUTOFF));
+		
+		svf.setCutoff(cutoff);
 		svf.setResonance(_smoothedParams->getNextValue(PID_e::RESONANCE));
 		
 		env.setRise(_smoothedParams->getNextValue(PID_e::RISE));

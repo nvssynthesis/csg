@@ -13,7 +13,15 @@
 #include "../JuceLibraryCode/JuceHeader.h"
 #include "params.h"
 
-namespace nvs::csg
+namespace nvs {
+
+template<typename float_t>
+float_t midiToHertz(float_t midiNote) // converts midiPitch to frequency in Hz
+{
+	return 440.0 * std::pow(2.0, ((midiNote - 69.0) / 12.0));
+}
+
+namespace csg
 {
 class CSG
 {
@@ -41,7 +49,7 @@ private:
 	double _phase;  // master phasor
 	
 	nvs::param::SmoothedParamsManager *_smoothedParams;
-
+	
 	nvs::filters::onePole<float> FM_filter, PM_filter;   // for smoothing feedback modulations
 	nvs::filters::dcBlock<float> dc_b;
 	
@@ -59,4 +67,5 @@ private:
 	
 	bool sampleRateValid() const;
 };
-}	// namespace nvs::csg
+}	// namespace csg
+}	// namespace nvs
