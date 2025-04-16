@@ -144,15 +144,11 @@ void CsgAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer& mi
 {
     ScopedNoDenormals noDenormals;
     buffer.clear ();
-
+	//======================================================================
 	smoothedParams.updateTargets(params.apvts);
-	if (auto* csg_voice = dynamic_cast<nvs::csg::CSGVoice*>(csgSynth.getVoice(0)))
-    {
-		// update parameters
-//		params.apvts.state.begin()
-    }
-    //======================================================================
     csgSynth.renderNextBlock(buffer, midiMessages, 0, buffer.getNumSamples());
+	//======================================================================
+	buffer.applyGain(smoothedParams.getNextValue(nvs::param::PID_e::OUTPUT_GAIN));
 }
 
 //==========================================================================

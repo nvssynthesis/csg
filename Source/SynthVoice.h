@@ -51,8 +51,6 @@ private:
 	bool sampleRateValid() const;
 	
 	float gate;
-	// float preGain, amplitude;
-	float vcf_outL, vcf_outR;
 	float oneOverBlockSize;
 	
 	int oversample_factor;

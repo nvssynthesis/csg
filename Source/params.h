@@ -16,6 +16,14 @@
 namespace nvs {
 namespace param {
 
+using AudioParameter = juce::AudioProcessorParameter;
+using APF = juce::AudioParameterFloat;
+using API = juce::AudioParameterInt;
+using String = juce::String;
+using NormRangeF = juce::NormalisableRange<float>;
+using AudioParameterGroup = juce::AudioProcessorParameterGroup;
+using JPID = juce::ParameterID;
+
 // for now, this doesn't need to be split up into proper hierarchies.
 #define PARAM_GROUP_LIST \
 X(MAIN)			\
@@ -34,7 +42,7 @@ enum class GroupID_e : size_t {
 	NUM_PARAMS
 };
 
-inline juce::String groupToString(GroupID_e group) {
+inline String groupToString(GroupID_e group) {
 	switch (group)
 	{
 #define X(sym) case GroupID_e::sym: return #sym;
@@ -43,12 +51,12 @@ inline juce::String groupToString(GroupID_e group) {
 		default: return {};
 	}
 }
-inline juce::String groupToName(GroupID_e group) {
+inline String groupToName(GroupID_e group) {
 	auto s = groupToString(group);
 	s.append(" PARAMETERS", 30);
 	return s;
 }
-inline juce::String groupToID(GroupID_e group) {
+inline String groupToID(GroupID_e group) {
 	auto s = groupToString(group);
 	s.append("_PARAMS", 30);
 	return s;
@@ -63,6 +71,7 @@ inline juce::String groupToID(GroupID_e group) {
   X(PM_TAME)                \
   X(PM_SHAPE)               \
   X(PM_DEGRADE)             \
+  X(DRIVE)					\
   X(CUTOFF)                 \
   X(RESONANCE)              \
   X(FILTER_TYPE_L)          \
@@ -80,6 +89,7 @@ inline juce::String groupToID(GroupID_e group) {
   X(PM_TAME_MOD)            \
   X(PM_SHAPE_MOD)           \
   X(PM_DEGRADE_MOD)         \
+  X(DRIVE_MOD)				\
   X(CUTOFF_MOD)             \
   X(RESONANCE_MOD)          \
   X(FILTER_TYPE_L_MOD)      \
@@ -100,7 +110,7 @@ enum class PID_e : size_t {
 #undef X
 #undef Y
 
-inline juce::String paramToID(PID_e id) {
+inline String paramToID(PID_e id) {
 	switch (id)
 	{
 #define X(sym) case PID_e::sym: return #sym;
@@ -112,32 +122,98 @@ inline juce::String paramToID(PID_e id) {
 	}
 }
 
-inline juce::String replaceUnderscores(juce::String str) {
+inline String replaceUnderscores(String str) {
 	str = str.replace("_", " ");
 	return str;
 }
 
-inline juce::String paramToName(PID_e id){
+inline String paramToName(PID_e id){
 	return replaceUnderscores(paramToID(id));
 }
 
-static juce::String makeModID(juce::String paramID){
+static String makeModID(String paramID){
 	paramID += "_MOD";
 	return paramID;
 }
-static juce::String makeModName(juce::String paramName){
+static String makeModName(String paramName){
 	paramName += " MOD";
 	return paramName;
 }
-static juce::String getBaseIDFromModPID(juce::String baseParamID){
+static String getBaseIDFromModPID(String baseParamID){
 	baseParamID.removeCharacters("_MOD");
 	return baseParamID;
 }
-static juce::String getBaseNameFromModName(juce::String baseParamID){
+static String getBaseNameFromModName(String baseParamID){
 	baseParamID.removeCharacters(" MOD");
 	return baseParamID;
 }
-
+//=============================================================================================================================
+auto makeAPF = [](PID_e pid, NormRangeF range, float defaultVal) {
+	return std::make_unique<APF>(
+		JPID{ paramToID(pid), 1 },
+		paramToName(pid),
+		std::move(range),
+		defaultVal,
+		juce::AudioParameterFloatAttributes().withStringFromValueFunction([](float value, int maximumStringLength) {
+			return juce::String(value, 3);
+		}));
+};
+auto makeAPF2 = [](PID_e pid, NormRangeF range, float defaultVal,
+				   std::function< String(float value, int maximumStringLength)> stringFromValue=nullptr,
+				   std::function< float(const String &text)> valueFromString=nullptr) {
+	return std::make_unique<APF>(
+		JPID{ paramToID(pid), 1 },
+		paramToName(pid),
+		std::move(range),
+		defaultVal,
+		paramToID(pid),	// label
+		AudioProcessorParameter::genericParameter,
+		stringFromValue,
+		valueFromString);
+};
+//=============================================================================================================================
+auto makeFrequencyNormRange = [](float f_low=20.f, float f_high=20000.f) -> NormRangeF {
+	return NormRangeF(f_low, f_high,
+	[](float start, float end, float normalised) {	// convertFrom0To1Func
+		return start * std::pow(end / start, normalised);
+	},
+	[](float start, float end, float value) {		// convertTo0To1Func
+		return std::log(value / start) / std::log(end / start);
+	});
+};
+auto makeTimingNormRange = []() -> NormRangeF { return NormRangeF(0.01f, 10000.f); };
+auto makeBitsRange = []() -> NormRangeF { return NormRangeF(0.01f, 1024.f,
+[](float start, float end, float normalised) -> float	// convertFrom0To1Func
+{
+	return start * std::pow(end / start, normalised);
+},
+[](float start, float end, float value) -> float		// convertTo0To1Func
+{
+	return std::log(value / start) / std::log(end / start);
+}
+); };
+auto makeGainRange = [](float minDb, float maxDb) -> NormRangeF
+{
+	return NormRangeF(juce::Decibels::decibelsToGain(minDb), juce::Decibels::decibelsToGain(maxDb),
+	[=] (float, float, float norm) -> float {	// normal to gain
+	// norm [0,1] → dB [minDb,maxDb] → linear gain
+		float db = juce::jmap (norm, 0.0f, 1.0f, minDb, maxDb);
+		return juce::Decibels::decibelsToGain (db);
+	},
+	[=] (float, float, float gain) -> float {
+	// linear gain → dB → norm [0,1]
+		float db = juce::Decibels::gainToDecibels (gain);
+		return juce::jmap (db, minDb, maxDb, 0.0f, 1.0f);
+	});
+};
+//=============================================================================================================================
+auto valueToString_dB = [] (float v, int /*precision*/)    {
+	return juce::String (juce::Decibels::gainToDecibels (v), 1) + " dB";
+};
+auto dB_stringToValue = [] (const juce::String& text) {
+	return juce::Decibels::decibelsToGain (text.upToFirstOccurrenceOf (" ", false, false).getFloatValue());
+};
+//=============================================================================================================================
 struct Params {
 	Params(juce::AudioProcessor& p)
 	:	apvts(p, nullptr, juce::Identifier("PARAMETERS"), createParamLayout())
@@ -145,14 +221,6 @@ struct Params {
 	
 	
 	AudioProcessorValueTreeState apvts;
-	
-	using AudioParameter = juce::AudioProcessorParameter;
-	using APF = juce::AudioParameterFloat;
-	using API = juce::AudioParameterInt;
-	using String = juce::String;
-	using NormRangeF = juce::NormalisableRange<float>;
-	using AudioParameterGroup = juce::AudioProcessorParameterGroup;
-	using JPID = juce::ParameterID;
 	
 private:
 	static std::unique_ptr<API> makeFilterTypesParameter(juce::String pid_str, juce::String param_str) {
@@ -184,37 +252,6 @@ private:
 	}
 	
 	static std::unique_ptr<AudioParameterGroup> makeMainParamsGroup() {
-		auto makeAPF = [](PID_e pid, NormRangeF range, float defaultVal) {
-			return std::make_unique<APF>(
-				JPID{ paramToID(pid), 1 },
-				paramToName(pid),
-				std::move(range),
-				defaultVal,
-				juce::AudioParameterFloatAttributes().withStringFromValueFunction([](float value, int maximumStringLength) {
-					return juce::String(value, 3);
-				}));
-		};
-		auto makeFrequencyNormRange = [](float f_low=20.f, float f_high=20000.f) -> NormRangeF {
-			return NormRangeF(f_low, f_high,
-			[](float start, float end, float normalised) {	// convertFrom0To1Func
-				return start * std::pow(end / start, normalised);
-			},
-			[](float start, float end, float value) {		// convertTo0To1Func
-				return std::log(value / start) / std::log(end / start);
-			});
-		};
-		auto makeTimingNormRange = []() -> NormRangeF { return NormRangeF(0.01f, 10000.f); };
-		auto makeBitsRange = []() -> NormRangeF { return NormRangeF(0.01f, 1024.f,
-		[](float start, float end, float normalised) -> float	// convertFrom0To1Func
-		{
-			return start * std::pow(end / start, normalised);
-		},
-		[](float start, float end, float value) -> float		// convertTo0To1Func
-		{
-			return std::log(value / start) / std::log(end / start);
-		}
-		); };
-
 		std::unique_ptr<AudioParameterGroup> FMParameterGroup = std::make_unique<AudioParameterGroup>(
 												groupToID(GroupID_e::FM), 	groupToName(GroupID_e::FM), "|",
 												makeAPF(PID_e::SELF_FM, 	NormRangeF{0.0f, 1.0f}, 0.0f),
@@ -231,8 +268,9 @@ private:
 																									  );
 		std::unique_ptr<AudioParameterGroup> filterParameterGroup = std::make_unique<AudioParameterGroup>(
 												groupToID(GroupID_e::FILTER), 	groupToName(GroupID_e::FILTER), "|",
-												makeAPF(PID_e::CUTOFF, 		makeFrequencyNormRange(), 12000.f ),
-												makeAPF(PID_e::RESONANCE, 	NormRangeF(1.f, 13.f), 1.f ),
+												makeAPF2(PID_e::DRIVE, 		makeGainRange(-60.f, 12.f), 1.0f, valueToString_dB, dB_stringToValue),
+												makeAPF(PID_e::CUTOFF, 		makeFrequencyNormRange(20.0, 22000.0), 12000.f ),
+												makeAPF(PID_e::RESONANCE, 	NormRangeF(0.f, 5.f), 1.f ),
 												makeFilterTypesParameter(paramToID(PID_e::FILTER_TYPE_L), paramToName(PID_e::FILTER_TYPE_L)),
 												makeFilterTypesParameter(paramToID(PID_e::FILTER_TYPE_R), paramToName(PID_e::FILTER_TYPE_R))
 																										  );
@@ -284,17 +322,13 @@ private:
 		}
 		return result;
 	}
-	
 	static std::unique_ptr<AudioParameterGroup> makeOutputParamsGroup() {
 		return std::make_unique<AudioParameterGroup>(
 							 groupToID(GroupID_e::OUTPUT), groupToName(GroupID_e::OUTPUT), "|",
 							 std::make_unique<APF>(JPID{ paramToID(PID_e::OUTPUT_GAIN), 1 }, paramToName(PID_e::OUTPUT_GAIN),
-												   NormRangeF { 0.f, 1.f,
-													   [](float start, float end, float normalized) { return std::sqrt(normalized); },
-													   [](float start, float end, float value) { return std::pow(value, 2.f); }},
+												   makeGainRange(-60.0f, 0.0f),
 												   0.f));
 	}
-	
 	static juce::AudioProcessorValueTreeState::ParameterLayout createParamLayout() {
 		juce::AudioProcessorValueTreeState::ParameterLayout layout;
 		std::unique_ptr<AudioParameterGroup> mainParamsTmp = makeMainParamsGroup();

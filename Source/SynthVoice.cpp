@@ -111,7 +111,7 @@ void CSGVoice::renderNextBlock (AudioBuffer<float> &outputBuffer, int startSampl
 		unit._PM_sin2cos_MOD = lfo_out * _smoothedParams->getNextValue(PID_e::PM_SHAPE_MOD);
 		
 		auto const cutoffMod = nvs::midiToHertz(lfo_out * _smoothedParams->getNextValue(PID_e::CUTOFF_MOD) * 127.0);
-		auto const cutoff = jlimit(10.0, 22000.0, cutoffMod + _smoothedParams->getNextValue(PID_e::CUTOFF));
+		auto const cutoff = jlimit(10.0, 22050.0, cutoffMod + _smoothedParams->getNextValue(PID_e::CUTOFF));
 		
 		svf.setCutoff(cutoff);
 		svf.setResonance(_smoothedParams->getNextValue(PID_e::RESONANCE));
@@ -122,7 +122,10 @@ void CSGVoice::renderNextBlock (AudioBuffer<float> &outputBuffer, int startSampl
 
 		auto const csg_wave = unit.getWave();
 		
-		svf.filter(csg_wave);
+		auto const drive = _smoothedParams->getNextValue(PID_e::DRIVE);
+		jassert (0.0 < drive);
+		svf.filter(csg_wave * drive);
+		float vcf_outL, vcf_outR;
 		switch ((int)_smoothedParams->getNextValue(PID_e::FILTER_TYPE_L))
 		{
 			case 0:
@@ -154,7 +157,7 @@ void CSGVoice::renderNextBlock (AudioBuffer<float> &outputBuffer, int startSampl
 		auto drone = _smoothedParams->getNextValue(PID_e::DRONE);
 		
 		outputBuffer.addSample(0, startSample,
-							   atanf(vcf_outL * nvs::memoryless::linterp<float>(env_currentVal, drone, drone)) * MINUS_NINE_DB);
+							   (atanf(vcf_outL * nvs::memoryless::linterp<float>(env_currentVal, drone, drone)) / drive) * MINUS_NINE_DB);
 		if (outputBuffer.getNumChannels() > 1)
 		{
 			switch ((int)_smoothedParams->getNextValue(PID_e::FILTER_TYPE_R))
@@ -181,7 +184,7 @@ void CSGVoice::renderNextBlock (AudioBuffer<float> &outputBuffer, int startSampl
 				}
 			}
 			outputBuffer.addSample(1, startSample,
-								   atanf(vcf_outR * nvs::memoryless::linterp<float>(env_currentVal, drone, drone)) * MINUS_NINE_DB);
+								   (atanf(vcf_outR * nvs::memoryless::linterp<float>(env_currentVal, drone, drone)) / drive) * MINUS_NINE_DB);
 		}
 		++startSample;
 	}

@@ -13,56 +13,64 @@
 #include "../JuceLibraryCode/JuceHeader.h"
 #include "PluginProcessor.h"
 
-
-namespace {
-
-void setupSlider(juce::AudioProcessorValueTreeState const &state, juce::String paramID, juce::Slider &slider) {
-	// adapted from https://github.com/juce-framework/JUCE/blob/master/modules/juce_audio_processors/utilities/juce_AudioProcessorValueTreeState.cpp#L464
-	juce::NormalisableRange<float> range (state.getParameterRange (paramID));
-	
-	if (range.interval != 0.0f || range.skew != 1.0f) {
-		slider.setRange (range.start, range.end, range.interval);
-		slider.setSkewFactor (range.skew, range.symmetricSkew);
+class NotchLookAndFeel  : public juce::LookAndFeel_V4
+{
+public:
+	NotchLookAndFeel()
+	{
+		// You can customize default colours here if you like:
+		setColour (juce::Slider::rotarySliderOutlineColourId, juce::Colours::darkgrey);
+		setColour (juce::Slider::thumbColourId, juce::Colours::white); // not used
 	}
-	else {
-		auto convertFrom0To1Function = [range](double currentRangeStart,
-											   double currentRangeEnd,
-											   double normalisedValue) mutable
-		{
-			range.start = (float) currentRangeStart;
-			range.end = (float) currentRangeEnd;
-			return (double) range.convertFrom0to1 ((float) normalisedValue);
-		};
+
+	void drawRotarySlider (juce::Graphics& g,
+						   int x, int y, int width, int height,
+						   float sliderPosProportional,
+						   float rotaryStartAngle,
+						   float rotaryEndAngle,
+						   juce::Slider& slider) override
+	{
+		const float radius = juce::jmin (width, height) * 0.4f;
+		const float centreX = x + width  * 0.5f;
+		const float centreY = y + height * 0.5f;
+
+		// draw the circular outline
+		g.setColour (slider.findColour (juce::Slider::rotarySliderOutlineColourId));
+		g.drawEllipse (centreX - radius,
+					   centreY - radius,
+					   radius * 2.0f,
+					   radius * 2.0f,
+					   2.0f);
+
+		// compute current angle
+		rotaryStartAngle -= juce::MathConstants<float>::halfPi;
+		rotaryEndAngle -= juce::MathConstants<float>::halfPi;
+		const float angle = rotaryStartAngle
+						  + sliderPosProportional * (rotaryEndAngle - rotaryStartAngle);
+
 		
-		auto convertTo0To1Function = [range](double currentRangeStart,
-											 double currentRangeEnd,
-											 double mappedValue) mutable
-		{
-			range.start = (float) currentRangeStart;
-			range.end = (float) currentRangeEnd;
-			return (double) range.convertTo0to1 ((float) mappedValue);
-		};
-		
-		auto snapToLegalValueFunction = [range](double currentRangeStart,
-												double currentRangeEnd,
-												double valueToSnap) mutable
-		{
-			range.start = (float) currentRangeStart;
-			range.end = (float) currentRangeEnd;
-			return (double) range.snapToLegalValue ((float) valueToSnap);
-		};
-		
-		slider.setNormalisableRange ({ (double) range.start,
-			(double) range.end,
-			convertFrom0To1Function,
-			convertTo0To1Function,
-			snapToLegalValueFunction });
+		std::cout << "rotaryStartAngle: " << rotaryStartAngle << "\n";
+		std::cout << "\tsliderPosProportional: " << sliderPosProportional << "\n";
+		std::cout << "\t\trotaryEndAngle: " << rotaryEndAngle << "\n";
+		std::cout << "\t\t\trotaryStartAngle: " << rotaryStartAngle << "\n";
+
+		std::cout << "\t\t\t\tangle: " << angle << "\n";
+
+		// compute notch endpoints
+		const float notchLength     = radius * 0.15f;  // how long the notch is
+		const float notchThickness  = 2.0f;           // thickness of the line
+		const float innerRadius     = radius * 0.6f;  // start of the notch
+		const float outerRadius     = innerRadius + notchLength;
+
+		const float x1 = centreX + std::cos (angle) * innerRadius;
+		const float y1 = centreY + std::sin (angle) * innerRadius;
+		const float x2 = centreX + std::cos (angle) * outerRadius;
+		const float y2 = centreY + std::sin (angle) * outerRadius;
+
+		// draw the notch
+		g.drawLine (x1, y1, x2, y2, notchThickness);
 	}
-}
-}
-
-
-
+};
 struct ModulatedSlider	:	public juce::Component
 {
 	using Slider = juce::Slider;
@@ -74,7 +82,7 @@ struct ModulatedSlider	:	public juce::Component
 					String paramGroupName = "",
 					Slider::SliderStyle sliderStyle = juce::Slider::LinearBarVertical,
 					juce::Slider::TextEntryBoxPosition entryPos = juce::Slider::TextBoxBelow);
-	void resized();
+	void resized() override;
 	String getParamName() const { return _paramName; }
 	String getParamGroupName() const { return _paramGroupName; }
 	
@@ -100,7 +108,7 @@ struct UtilityKnob	:	public juce::Component
 					int numDecimalPlacesToDisplay = 3,
 					Slider::SliderStyle sliderStyle = juce::Slider::LinearBarVertical,
 				juce::Slider::TextEntryBoxPosition entryPos = juce::Slider::TextBoxBelow);
-	
+	void resized() override;
 	String getParamName() const { return _paramName; }
 
 	Slider _slider;
@@ -126,6 +134,8 @@ private:
     // access the processor object that created it.
     CsgAudioProcessor& processor;
     
+	NotchLookAndFeel notchLAF;
+	
 	std::vector<std::unique_ptr<ModulatedSlider>> sliders;
 	std::vector<std::unique_ptr<UtilityKnob>> knobs;
 	

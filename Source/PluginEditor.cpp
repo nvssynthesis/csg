@@ -14,6 +14,52 @@
 
 //==============================================================================
 
+namespace {
+void setupSlider(juce::AudioProcessorValueTreeState const &state, juce::String paramID, juce::Slider &slider) {
+	// adapted from https://github.com/juce-framework/JUCE/blob/master/modules/juce_audio_processors/utilities/juce_AudioProcessorValueTreeState.cpp#L464
+	juce::NormalisableRange<float> range (state.getParameterRange (paramID));
+	
+	if (range.interval != 0.0f || range.skew != 1.0f) {
+		slider.setRange (range.start, range.end, range.interval);
+		slider.setSkewFactor (range.skew, range.symmetricSkew);
+	}
+	else {
+		auto convertFrom0To1Function = [range](double currentRangeStart,
+											   double currentRangeEnd,
+											   double normalisedValue) mutable
+		{
+			range.start = (float) currentRangeStart;
+			range.end = (float) currentRangeEnd;
+			return (double) range.convertFrom0to1 ((float) normalisedValue);
+		};
+		
+		auto convertTo0To1Function = [range](double currentRangeStart,
+											 double currentRangeEnd,
+											 double mappedValue) mutable
+		{
+			range.start = (float) currentRangeStart;
+			range.end = (float) currentRangeEnd;
+			return (double) range.convertTo0to1 ((float) mappedValue);
+		};
+		
+		auto snapToLegalValueFunction = [range](double currentRangeStart,
+												double currentRangeEnd,
+												double valueToSnap) mutable
+		{
+			range.start = (float) currentRangeStart;
+			range.end = (float) currentRangeEnd;
+			return (double) range.snapToLegalValue ((float) valueToSnap);
+		};
+		
+		slider.setNormalisableRange ({ (double) range.start,
+			(double) range.end,
+			convertFrom0To1Function,
+			convertTo0To1Function,
+			snapToLegalValueFunction });
+	}
+}
+}
+
 ModulatedSlider::ModulatedSlider(juce::AudioProcessorValueTreeState &apvts,
 					juce::RangedAudioParameter const &param,
 					String paramGroupName,
@@ -52,8 +98,8 @@ ModulatedSlider::ModulatedSlider(juce::AudioProcessorValueTreeState &apvts,
 
 void ModulatedSlider::resized()
 {
-	int const pad = 10;
-	auto area = getLocalBounds().reduced(pad).toFloat();
+	int const pad = 3;
+	auto area = getLocalBounds().withTrimmedTop(pad).withTrimmedBottom(pad).withTrimmedLeft(1.1*pad).withTrimmedRight(1.1*pad).toFloat();
 
 	float totalH = area.getHeight();
 	float labelH  = totalH * 0.1f;
@@ -79,26 +125,28 @@ UtilityKnob::UtilityKnob(juce::AudioProcessorValueTreeState &apvts,
 					int numDecimalPlacesToDisplay,
 					Slider::SliderStyle sliderStyle,
 					juce::Slider::TextEntryBoxPosition entryPos)
-	:
-	_slider(),
+:	_slider(),
 	_attachment(apvts, param.getParameterID(), _slider),
 	_paramName(param.getName(20))
-	{
-		setupSlider(apvts, param.getParameterID(), _slider);
-		_slider.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
-		_slider.setTextBoxStyle(juce::Slider::TextBoxBelow, false, /* width */ 15, /* height */ 10);
-		_slider.setColour(Slider::ColourIds::thumbColourId, juce::Colours::grey);
-		_slider.setColour(Slider::ColourIds::trackColourId, juce::Colours::darkgrey);
-		_slider.setColour(Slider::ColourIds::textBoxTextColourId, juce::Colours::lightgrey);
+{
+	setupSlider(apvts, param.getParameterID(), _slider);
+	_slider.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
+	_slider.setTextBoxStyle(juce::Slider::NoTextBox, false, /* width */ 15, /* height */ 10);
+	_slider.setColour(Slider::ColourIds::thumbColourId, juce::Colours::grey);
+	_slider.setColour(Slider::ColourIds::trackColourId, juce::Colours::darkgrey);
+	_slider.setColour(Slider::ColourIds::textBoxTextColourId, juce::Colours::lightgrey);
 
-		_label.setFont({"Palatino", 10.f, 0});
-		_label.attachToComponent(&_slider, false);
-		_label.setText(_paramName, dontSendNotification);
-		
-		addAndMakeVisible(_slider);
-		addAndMakeVisible(_label);
-	}
+	_label.setFont({"Palatino", 10.f, 0});
+	_label.attachToComponent(&_slider, false);
+	_label.setText(_paramName, dontSendNotification);
+	
+	addAndMakeVisible(_slider);
+	addAndMakeVisible(_label);
+}
 
+void UtilityKnob::resized() {
+	_slider.setBounds(getLocalBounds());
+}
 //==============================================================================
 
 
@@ -139,6 +187,7 @@ CsgAudioProcessorEditor::CsgAudioProcessorEditor (CsgAudioProcessor& p)
 		addAndMakeVisible(s.get());
 	}
 	for (auto &k : knobs){
+		k->setLookAndFeel(&notchLAF);
 		addAndMakeVisible(k.get());
 	}
 	
@@ -182,8 +231,11 @@ void CsgAudioProcessorEditor::paint (Graphics& g)
 
 void CsgAudioProcessorEditor::resized()
 {
-	const auto topPad = 23;
-	const int  pad    = 5;
+
+	const auto topPad = 53;
+	const int  pad    = 3;
+
+	knobs[0]->setBounds(getWidth() - topPad, 0, topPad, topPad);
 
 	// clear out last frame’s group‑areas
 	groupAreas.clear();
