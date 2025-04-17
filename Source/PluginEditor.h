@@ -21,6 +21,9 @@ public:
 		// You can customize default colours here if you like:
 		setColour (juce::Slider::rotarySliderOutlineColourId, juce::Colours::darkgrey);
 		setColour (juce::Slider::thumbColourId, juce::Colours::white); // not used
+		auto scheme = getDarkColourScheme();
+		scheme.setUIColour(ColourScheme::UIColour::defaultFill, notchColour);
+		setColourScheme(scheme);
 	}
 
 	void drawRotarySlider (juce::Graphics& g,
@@ -36,40 +39,43 @@ public:
 
 		// draw the circular outline
 		g.setColour (slider.findColour (juce::Slider::rotarySliderOutlineColourId));
-		g.drawEllipse (centreX - radius,
-					   centreY - radius,
-					   radius * 2.0f,
-					   radius * 2.0f,
+		juce::Rectangle<float> ellipseRect(centreX - radius,
+										   centreY - radius,
+										   radius * 2.0f,
+										   radius * 2.0f);
+		g.drawEllipse (ellipseRect,
 					   2.0f);
 
-		// compute current angle
-		rotaryStartAngle -= juce::MathConstants<float>::halfPi;
-		rotaryEndAngle -= juce::MathConstants<float>::halfPi;
-		const float angle = rotaryStartAngle
-						  + sliderPosProportional * (rotaryEndAngle - rotaryStartAngle);
+		const float angle = rotaryStartAngle + sliderPosProportional * (rotaryEndAngle - rotaryStartAngle);
 
-		
-		std::cout << "rotaryStartAngle: " << rotaryStartAngle << "\n";
-		std::cout << "\tsliderPosProportional: " << sliderPosProportional << "\n";
-		std::cout << "\t\trotaryEndAngle: " << rotaryEndAngle << "\n";
-		std::cout << "\t\t\trotaryStartAngle: " << rotaryStartAngle << "\n";
-
-		std::cout << "\t\t\t\tangle: " << angle << "\n";
-
+		using juce::Path;
+		using Point = juce::Point<float>;
+		using Line = juce::Line<float>;
+	
 		// compute notch endpoints
-		const float notchLength     = radius * 0.15f;  // how long the notch is
-		const float notchThickness  = 2.0f;           // thickness of the line
-		const float innerRadius     = radius * 0.6f;  // start of the notch
+		const float innerRadius     = radius * 0.2f;  // start of the notch
+		const float notchLength     = radius * 0.6f;  // how long the notch is
 		const float outerRadius     = innerRadius + notchLength;
+		const float notchThickness  = 0.9f;           // thickness of the line
+		[[maybe_unused]] auto makeLine = [=](float a){
+			float x1 = centreX + std::cos (a) * innerRadius;
+			float y1 = centreY + std::sin (a) * innerRadius;
+			float x2 = centreX + std::cos (a) * outerRadius;
+			float y2 = centreY + std::sin (a) * outerRadius;
+			return Line(Point(x1, y1), Point(x2, y2));
+		};
+		
+		juce::Path p;
+		p.addPieSegment(ellipseRect.reduced(5.f), angle - juce::degreesToRadians(notchWidthDegrees), angle + juce::degreesToRadians(notchWidthDegrees), 0.f);
+//		p.closeSubPath();  // <— this closes the polygon
 
-		const float x1 = centreX + std::cos (angle) * innerRadius;
-		const float y1 = centreY + std::sin (angle) * innerRadius;
-		const float x2 = centreX + std::cos (angle) * outerRadius;
-		const float y2 = centreY + std::sin (angle) * outerRadius;
-
-		// draw the notch
-		g.drawLine (x1, y1, x2, y2, notchThickness);
+		// Now fill it
+		g.setColour (getCurrentColourScheme().getUIColour(ColourScheme::UIColour::defaultFill));
+		g.fillPath (p);
 	}
+private:
+	float const notchWidthDegrees {6.f};
+	juce::Colour notchColour {Colours::blueviolet};
 };
 struct ModulatedSlider	:	public juce::Component
 {

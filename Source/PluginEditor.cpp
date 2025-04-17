@@ -184,6 +184,7 @@ CsgAudioProcessorEditor::CsgAudioProcessorEditor (CsgAudioProcessor& p)
 	
 	// make them visible
 	for (auto &s : sliders){
+		s->setLookAndFeel(&notchLAF);
 		addAndMakeVisible(s.get());
 	}
 	for (auto &k : knobs){
