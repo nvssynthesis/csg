@@ -123,32 +123,17 @@ void CSGVoice::renderNextBlock (AudioBuffer<float> &outputBuffer, int startSampl
 		auto const csg_wave = unit.getWave();
 		
 		auto const drive = _smoothedParams->getNextValue(PID_e::DRIVE);
-		jassert (0.0 < drive);
 		svf.filter(csg_wave * drive);
-		float vcf_outL, vcf_outR;
-		switch ((int)_smoothedParams->getNextValue(PID_e::FILTER_TYPE_L))
-		{
-			case 0:
-			{
-				vcf_outL = svf.lp();
-				break;
+		
+		auto getFilterVal = [&](float filterSelection){
+			switch ((int)filterSelection) {
+				case 0: { return svf.lp(); }
+				case 1: { return svf.bp(); }
+				case 2: { return svf.hp(); }
+				case 3: { return svf.np(); }
+				default:{ return svf.lp(); }
 			}
-			case 1:
-			{
-				vcf_outL = svf.bp();
-				break;
-			}
-			case 2:
-			{
-				vcf_outL = svf.hp();
-				break;
-			}
-			case 3:
-			{
-				vcf_outL = svf.np();
-				break;
-			}
-		}
+		};
 		
 		
 		float env_currentVal = env.ASR(gate);
@@ -156,35 +141,18 @@ void CSGVoice::renderNextBlock (AudioBuffer<float> &outputBuffer, int startSampl
 		
 		auto drone = _smoothedParams->getNextValue(PID_e::DRONE);
 		
+		float vcf_outL = getFilterVal(_smoothedParams->getNextValue(PID_e::FILTER_TYPE_L));
+		jassert (0.0 < drive);
+		auto drive_compensate = (1.f / tanh(drive));
+
 		outputBuffer.addSample(0, startSample,
-							   (atanf(vcf_outL * nvs::memoryless::linterp<float>(env_currentVal, drone, drone)) / drive) * MINUS_NINE_DB);
+							   (atanf(vcf_outL * nvs::memoryless::linterp<float>(env_currentVal, drone, drone)) * drive_compensate) * MINUS_NINE_DB);
+		
 		if (outputBuffer.getNumChannels() > 1)
 		{
-			switch ((int)_smoothedParams->getNextValue(PID_e::FILTER_TYPE_R))
-			{
-				case 0:
-				{
-					vcf_outR = svf.lp();
-					break;
-				}
-				case 1:
-				{
-					vcf_outR = svf.bp();
-					break;
-				}
-				case 2:
-				{
-					vcf_outR = svf.hp();
-					break;
-				}
-				case 3:
-				{
-					vcf_outR = svf.np();
-					break;
-				}
-			}
+			float vcf_outR = getFilterVal(_smoothedParams->getNextValue(PID_e::FILTER_TYPE_R));
 			outputBuffer.addSample(1, startSample,
-								   (atanf(vcf_outR * nvs::memoryless::linterp<float>(env_currentVal, drone, drone)) / drive) * MINUS_NINE_DB);
+								   (atanf(vcf_outR * nvs::memoryless::linterp<float>(env_currentVal, drone, drone)) * drive_compensate) * MINUS_NINE_DB);
 		}
 		++startSample;
 	}
