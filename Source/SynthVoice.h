@@ -37,6 +37,9 @@ public:
 	//===========================================================================
 	void prepareToPlay(double sampleRate, int samplesPerBlock);
 
+	void setSVFOversampling(unsigned int oversample_factor) {
+		svf.set_oversample(oversample_factor);
+	}
 private:
 	double velocityLevel;
 	double frequency {110.0};
@@ -51,9 +54,6 @@ private:
 	bool sampleRateValid() const;
 	
 	float gate;
-	float oneOverBlockSize;
-	
-	int oversample_factor;
 };
 
 }	//	namespace nvs::csg

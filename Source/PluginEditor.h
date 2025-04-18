@@ -124,7 +124,20 @@ private:
 	String _paramName;
 	juce::Label _label;
 };
+struct AttachedComboBox	:	public juce::Component
+{
+	using ComboBox = juce::ComboBox;
+	using ComboBoxAttachment  = juce::AudioProcessorValueTreeState::ComboBoxAttachment;
+	using AudioParamChoice = juce::AudioParameterChoice;
+	
+	AttachedComboBox(juce::AudioProcessorValueTreeState &apvts,
+					 juce::RangedAudioParameter const &param);
+	
+	void resized() override;
 
+	ComboBox _comboBox;
+	ComboBoxAttachment _attachment;
+};
 
 class CsgAudioProcessorEditor  : public AudioProcessorEditor
 {
@@ -144,6 +157,7 @@ private:
 	
 	std::vector<std::unique_ptr<ModulatedSlider>> sliders;
 	std::vector<std::unique_ptr<UtilityKnob>> knobs;
+	std::vector<std::unique_ptr<AttachedComboBox>> comboBoxes;
 	
 	std::vector<juce::Rectangle<float>> groupAreas;
 	

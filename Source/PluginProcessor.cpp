@@ -24,7 +24,8 @@ CsgAudioProcessor::CsgAudioProcessor() :
                        ),
 #endif
 
-params(*this)
+params(*this),
+smoothedParams(params.apvts)
 {
 	using namespace nvs::csg;
 	csgSynth.setCurrentPlaybackSampleRate(44100.f);
@@ -145,10 +146,8 @@ void CsgAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer& mi
     ScopedNoDenormals noDenormals;
     buffer.clear ();
 	//======================================================================
-	smoothedParams.updateTargets(params.apvts);
     csgSynth.renderNextBlock(buffer, midiMessages, 0, buffer.getNumSamples());
 	//======================================================================
-	buffer.applyGain(smoothedParams.getNextValue(nvs::param::PID_e::OUTPUT_GAIN));
 }
 
 //==========================================================================

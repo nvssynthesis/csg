@@ -147,6 +147,17 @@ UtilityKnob::UtilityKnob(juce::AudioProcessorValueTreeState &apvts,
 void UtilityKnob::resized() {
 	_slider.setBounds(getLocalBounds());
 }
+AttachedComboBox::AttachedComboBox(juce::AudioProcessorValueTreeState &apvts,
+								   juce::RangedAudioParameter const &param)
+:	_comboBox(),
+	_attachment(apvts, param.getParameterID(), _comboBox)
+{
+	addAndMakeVisible(_comboBox);
+}
+void AttachedComboBox::resized() {
+	_comboBox.setBounds(getLocalBounds());
+}
+
 //==============================================================================
 
 
@@ -157,22 +168,42 @@ CsgAudioProcessorEditor::CsgAudioProcessorEditor (CsgAudioProcessor& p)
 	
 	AudioProcessorParameterGroup const &paramTree = processor.getParameterTree();
 	juce::Array<const AudioProcessorParameterGroup*> subgroups = paramTree.getSubgroups(false);
+
+
 	for (auto const *paramGroup : subgroups){
-		if (paramGroup->getID().equalsIgnoreCase("MAIN_PARAMS")){
-			for (AudioProcessorParameterGroup const *paramSubGroup : paramGroup->getSubgroups(false)){
-				for (AudioProcessorParameter const *param : paramSubGroup->getParameters(false)){
-					if (juce::RangedAudioParameter const *rap = dynamic_cast<juce::RangedAudioParameter const*>(param)){
+		if (paramGroup->getID().equalsIgnoreCase(nvs::param::groupToID(nvs::param::GroupID_e::MAIN)))
+		{
+			for (AudioProcessorParameterGroup const *paramSubGroup : paramGroup->getSubgroups(false))
+			{
+				for (AudioProcessorParameter const *param : paramSubGroup->getParameters(false))
+				{
+					if (juce::RangedAudioParameter const *rap = dynamic_cast<juce::RangedAudioParameter const*>(param))
+					{
 						sliders.push_back(std::make_unique<ModulatedSlider>(apvts, *rap, paramSubGroup->getName()));
 					}
 				}
 			}
 		}
-		else if (paramGroup->getID().equalsIgnoreCase("MODULATION_PARAMS")){
+		else if (paramGroup->getID().equalsIgnoreCase(nvs::param::groupToID(nvs::param::GroupID_e::MODULATION))){
 			// should be automatically attached by the modulatedSlider being constructed above
 		}
-		else if (paramGroup->getID().equalsIgnoreCase("OUTPUT_PARAMS")){
-			for (auto const *param : paramGroup->getParameters(false)){
-				if (juce::RangedAudioParameter const *rap = dynamic_cast<juce::RangedAudioParameter const*>(param)){
+		else if (paramGroup->getID().equalsIgnoreCase(nvs::param::groupToID(nvs::param::GroupID_e::UTILITY)))
+		{
+			for (auto const *param : paramGroup->getParameters(false))
+			{
+				std::cout << param->getName(20) << '\n';
+				if (param->getName(20).contains(nvs::param::paramToName(nvs::param::PID_e::OVERSAMPLE_FACTOR)))
+				{
+					if (auto const *a = dynamic_cast<juce::AudioParameterChoice const*>(param)){
+						auto acb = std::make_unique<AttachedComboBox>(apvts, *a);
+						
+						acb->_comboBox.addItemList (nvs::param::oversampleLabels, /*item IDs start at 1*/ 1);
+						acb->_comboBox.setSelectedItemIndex (a->getIndex(), juce::dontSendNotification);
+						comboBoxes.push_back(std::move(acb));
+					}
+				}
+				else if (juce::RangedAudioParameter const *rap = dynamic_cast<juce::RangedAudioParameter const*>(param))
+				{
 					knobs.push_back(std::make_unique<UtilityKnob>(apvts, *rap));
 				}
 			}
@@ -191,7 +222,9 @@ CsgAudioProcessorEditor::CsgAudioProcessorEditor (CsgAudioProcessor& p)
 		k->setLookAndFeel(&notchLAF);
 		addAndMakeVisible(k.get());
 	}
-	
+	for (auto & cb : comboBoxes){
+		addAndMakeVisible(cb.get());
+	}
 	backgroundImage = ImageCache::getFromMemory (BinaryData::enclosure_medium_png,
 												 BinaryData::enclosure_medium_pngSize);
 	
@@ -235,9 +268,14 @@ void CsgAudioProcessorEditor::resized()
 
 	const auto topPad = 53;
 	const int  pad    = 3;
-
-	knobs[0]->setBounds(getWidth() - topPad, 0, topPad, topPad);
-
+	{	// place output gain knob
+		knobs[0]->setBounds(getWidth() - topPad, 0, topPad, topPad);
+	}
+	{	// place oversampling combo box
+		int const cbWidth = 80;
+		int const cbPad = 16;
+		comboBoxes[0]->setBounds(knobs[0]->getX() - (cbWidth + cbPad), 0 + cbPad, cbWidth, topPad - 2*cbPad);
+	}
 	// clear out last frame’s group‑areas
 	groupAreas.clear();
 
@@ -266,7 +304,7 @@ void CsgAudioProcessorEditor::resized()
 			if      (groupName == "FILTER") weights.push_back (1.2f);
 			else if (groupName == "ENV")    weights.push_back (1.0f);
 			else if (groupName == "LFO")    weights.push_back (0.7f);
-			else                             weights.push_back (1.0f);
+			else                            weights.push_back (1.0f);
 		}
 
 		float totalWeight = std::accumulate (weights.begin(), weights.end(), 0.0f);

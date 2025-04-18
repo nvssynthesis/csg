@@ -14,10 +14,9 @@ namespace nvs::csg {
 
 CSGVoice::CSGVoice(nvs::param::SmoothedParamsManager *smoothedParams)
 :	_smoothedParams(smoothedParams),
-	unit(_smoothedParams),
-	oversample_factor(4)
+	unit(_smoothedParams)
 {
-	svf.set_oversample(oversample_factor);
+	svf.set_oversample(4);
 }
 bool CSGVoice::canPlaySound (SynthesiserSound* sound)
 {
@@ -78,21 +77,27 @@ bool CSGVoice::sampleRateValid() const {
 //===========================================================================
 void CSGVoice::prepareToPlay(double sampleRate, int samplesPerBlock) {
 	setCurrentPlaybackSampleRate(sampleRate);
+	_smoothedParams->reset(sampleRate, samplesPerBlock);
 }
 void CSGVoice::renderNextBlock (AudioBuffer<float> &outputBuffer, int startSample, int numSamples)
 {
 	jassert (sampleRateValid());
+	using PID_e = nvs::param::PID_e;
+
+	unsigned int const oversampleFactor = std::pow(2, _smoothedParams->getNextValue(PID_e::OVERSAMPLE_FACTOR));
+	setSVFOversampling(oversampleFactor);
 	
 	env.setBlockSize(numSamples);
 	svf.setBlockSize(numSamples);
-	oneOverBlockSize = 1.f / static_cast<float>(numSamples);
+	
+	std::cout << startSample<< ' ' << numSamples << '\n';
+	_smoothedParams->updateTargets();
+
 	// was in sample for loop
-	//unit._freq = frequency / oversample_factor;   // 2X oversampling
 	unit.setFrequency(frequency);
 	
 	jassert(_smoothedParams);
 	
-	using PID_e = nvs::param::PID_e;
 	for (int sample = 0; sample < numSamples; ++sample)
 	{
 		lfo._freq = _smoothedParams->getNextValue(PID_e::LFO_RATE);
@@ -110,15 +115,20 @@ void CSGVoice::renderNextBlock (AudioBuffer<float> &outputBuffer, int startSampl
 		
 		unit._PM_sin2cos_MOD = lfo_out * _smoothedParams->getNextValue(PID_e::PM_SHAPE_MOD);
 		
-		auto const cutoffMod = nvs::midiToHertz(lfo_out * _smoothedParams->getNextValue(PID_e::CUTOFF_MOD) * 127.0);
-		auto const cutoff = jlimit(10.0, 22050.0, cutoffMod + _smoothedParams->getNextValue(PID_e::CUTOFF));
+		float const cutoffMod = nvs::midiToHertz(lfo_out * _smoothedParams->getNextValue(PID_e::CUTOFF_MOD) * 127.0);
+//		auto const cutoff = jlimit(10.0, 22050.0, cutoffMod + _smoothedParams->getNextValue(PID_e::CUTOFF));
+//		auto const cutoff = jlimit(10.0, 22050.0, cutoffMod + _smoothedParams->getNextValue(PID_e::CUTOFF));
+		float const cutM1P1 = jmap(cutoffMod + _smoothedParams->getNextValue(PID_e::CUTOFF), 20.0f, 22050.0f, -0.1f, 0.1f);
+		float const cutNorm = tanh(cutM1P1);
+		float const cutDenorm = jmap(cutNorm, -0.1f, 0.1f, 20.0f, 22050.0f);
+
+		svf.setCutoff(cutDenorm);
 		
-		svf.setCutoff(cutoff);
-		svf.setResonance(_smoothedParams->getNextValue(PID_e::RESONANCE));
+		auto const res = jlimit(0.0f, 6.0f, 5.0f * lfo_out * _smoothedParams->getNextValue(PID_e::RESONANCE_MOD) + _smoothedParams->getNextValue(PID_e::RESONANCE));
+		svf.setResonance(res);
 		
 		env.setRise(_smoothedParams->getNextValue(PID_e::RISE));
 		env.setFall(_smoothedParams->getNextValue(PID_e::FALL));
-		
 
 		auto const csg_wave = unit.getWave();
 		
@@ -135,25 +145,28 @@ void CSGVoice::renderNextBlock (AudioBuffer<float> &outputBuffer, int startSampl
 			}
 		};
 		
-		
 		float env_currentVal = env.ASR(gate);
 		env_currentVal *= env_currentVal;
 		
 		auto drone = _smoothedParams->getNextValue(PID_e::DRONE);
 		
-		float vcf_outL = getFilterVal(_smoothedParams->getNextValue(PID_e::FILTER_TYPE_L));
+		float vcf_outL = getFilterVal(_smoothedParams->getNextValue(PID_e::TYPE_L));
 		jassert (0.0 < drive);
-		auto drive_compensate = (1.f / tanh(drive));
+		auto drive_compensate = 10.f * atan(0.1f / tanh(drive));
 
+		
+		auto const outGain = _smoothedParams->getNextValue(nvs::param::PID_e::OUTPUT_GAIN);
+		
 		outputBuffer.addSample(0, startSample,
-							   (atanf(vcf_outL * nvs::memoryless::linterp<float>(env_currentVal, drone, drone)) * drive_compensate) * MINUS_NINE_DB);
+							   (atanf(vcf_outL * nvs::memoryless::linterp<float>(env_currentVal, drone, drone)) * drive_compensate) * MINUS_NINE_DB * outGain);
 		
 		if (outputBuffer.getNumChannels() > 1)
 		{
-			float vcf_outR = getFilterVal(_smoothedParams->getNextValue(PID_e::FILTER_TYPE_R));
+			float vcf_outR = getFilterVal(_smoothedParams->getNextValue(PID_e::TYPE_R));
 			outputBuffer.addSample(1, startSample,
-								   (atanf(vcf_outR * nvs::memoryless::linterp<float>(env_currentVal, drone, drone)) * drive_compensate) * MINUS_NINE_DB);
+								(atanf(vcf_outR * nvs::memoryless::linterp<float>(env_currentVal, drone, drone)) * drive_compensate) * MINUS_NINE_DB * outGain);
 		}
+		
 		++startSample;
 	}
 }

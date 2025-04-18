@@ -19,6 +19,7 @@ namespace param {
 using AudioParameter = juce::AudioProcessorParameter;
 using APF = juce::AudioParameterFloat;
 using API = juce::AudioParameterInt;
+using ChoiceParam = juce::AudioParameterChoice;
 using String = juce::String;
 using NormRangeF = juce::NormalisableRange<float>;
 using AudioParameterGroup = juce::AudioProcessorParameterGroup;
@@ -33,7 +34,7 @@ X(FILTER)		\
 X(LFO)			\
 X(ENVELOPE)		\
 X(MODULATION)	\
-X(OUTPUT)
+X(UTILITY)
 
 enum class GroupID_e : size_t {
 #define X(sym) sym,
@@ -74,8 +75,8 @@ inline String groupToID(GroupID_e group) {
   X(DRIVE)					\
   X(CUTOFF)                 \
   X(RESONANCE)              \
-  X(FILTER_TYPE_L)          \
-  X(FILTER_TYPE_R)          \
+  X(TYPE_L)  		        \
+  X(TYPE_R) 		         \
   X(LFO_RATE)               \
   X(LFO_WAVE)               \
   X(DRONE)                  \
@@ -92,13 +93,14 @@ inline String groupToID(GroupID_e group) {
   X(DRIVE_MOD)				\
   X(CUTOFF_MOD)             \
   X(RESONANCE_MOD)          \
-  X(FILTER_TYPE_L_MOD)      \
-  X(FILTER_TYPE_R_MOD)      \
+  X(TYPE_L_MOD)      		\
+  X(TYPE_R_MOD)      		\
   X(LFO_RATE_MOD)           \
   X(LFO_WAVE_MOD)           \
   X(DRONE_MOD)              \
   X(RISE_MOD)               \
   X(FALL_MOD)               \
+  Y(OVERSAMPLE_FACTOR)		\
   Y(OUTPUT_GAIN)
 
 enum class PID_e : size_t {
@@ -114,7 +116,7 @@ inline String paramToID(PID_e id) {
 	switch (id)
 	{
 #define X(sym) case PID_e::sym: return #sym;
-#define Y(name)
+#define Y(sym) case PID_e::sym: return #sym;
 		PARAM_LIST
 #undef X
 #undef Y
@@ -213,6 +215,21 @@ auto valueToString_dB = [] (float v, int /*precision*/)    {
 auto dB_stringToValue = [] (const juce::String& text) {
 	return juce::Decibels::decibelsToGain (text.upToFirstOccurrenceOf (" ", false, false).getFloatValue());
 };
+auto bitsValueToString = [](float actualValue, int) -> String
+{
+	// stringFromValue: show log2(actual) as an integer " N bits "
+	float bits = std::log2(actualValue);
+	return String (bits, 2) + " bits";
+};
+auto bitsStringToValue = [](const String& text) -> float
+{
+	// valueFromText: user types “8” (or “8 bits”) -> return 2^8 = 256.0f
+	float bits = text.getFloatValue();
+	// jlimit?
+	return std::exp2(bits);
+};
+//=============================================================================================================================
+const juce::StringArray oversampleLabels { "1x", "2x", "4x", "8x", "16x", "32x", "64x", "128x"};
 //=============================================================================================================================
 struct Params {
 	Params(juce::AudioProcessor& p)
@@ -257,26 +274,26 @@ private:
 												makeAPF(PID_e::SELF_FM, 	NormRangeF{0.0f, 1.0f}, 0.0f),
 												makeAPF(PID_e::MEMORY,		NormRangeF{1.f, 32.f}, 1.f),
 												makeAPF(PID_e::FM_SMOOTH, 	makeFrequencyNormRange(), 2000.f),
-												makeAPF(PID_e::FM_DEGRADE,	makeBitsRange(), 256.f)
+												makeAPF2(PID_e::FM_DEGRADE,	makeBitsRange(), 256.f, bitsValueToString, bitsStringToValue)
 																									  );
 		std::unique_ptr<AudioParameterGroup> PMParameterGroup = std::make_unique<AudioParameterGroup>(
 												groupToID(GroupID_e::PM), 	groupToName(GroupID_e::PM), "|",
 												makeAPF(PID_e::PM_AMOUNT, 	NormRangeF(0.f, 8.f), 0.f ),
 												makeAPF(PID_e::PM_TAME, 	makeFrequencyNormRange(), 2000.f ),
 												makeAPF(PID_e::PM_SHAPE, 	NormRangeF(0.f, 1.f), 0.f ),
-												makeAPF(PID_e::PM_DEGRADE, 	makeBitsRange(), 256.f )
+												makeAPF2(PID_e::PM_DEGRADE, 	makeBitsRange(), 256.f, bitsValueToString, bitsStringToValue)
 																									  );
 		std::unique_ptr<AudioParameterGroup> filterParameterGroup = std::make_unique<AudioParameterGroup>(
 												groupToID(GroupID_e::FILTER), 	groupToName(GroupID_e::FILTER), "|",
 												makeAPF2(PID_e::DRIVE, 		makeGainRange(-60.f, 12.f), 1.0f, valueToString_dB, dB_stringToValue),
 												makeAPF(PID_e::CUTOFF, 		makeFrequencyNormRange(20.0, 22000.0), 12000.f ),
 												makeAPF(PID_e::RESONANCE, 	NormRangeF(0.f, 5.f), 1.f ),
-												makeFilterTypesParameter(paramToID(PID_e::FILTER_TYPE_L), paramToName(PID_e::FILTER_TYPE_L)),
-												makeFilterTypesParameter(paramToID(PID_e::FILTER_TYPE_R), paramToName(PID_e::FILTER_TYPE_R))
+												makeFilterTypesParameter(paramToID(PID_e::TYPE_L), paramToName(PID_e::TYPE_L)),
+												makeFilterTypesParameter(paramToID(PID_e::TYPE_R), paramToName(PID_e::TYPE_R))
 																										  );
 		std::unique_ptr<AudioParameterGroup> LFOParameterGroup = std::make_unique<AudioParameterGroup>(
 												groupToID(GroupID_e::LFO), 	groupToName(GroupID_e::LFO), "|",
-												makeAPF(PID_e::LFO_RATE, 	makeFrequencyNormRange(0.023f, 23.f), 1.f ),
+												makeAPF(PID_e::LFO_RATE, 	makeFrequencyNormRange(0.023f, 230.f), 1.f ),
 												makeAPF(PID_e::LFO_WAVE, 	NormRangeF(0.f, 3.f), 0.f )
 																									   );
 		std::unique_ptr<AudioParameterGroup> envelopeParameterGroup = std::make_unique<AudioParameterGroup>(
@@ -322,9 +339,14 @@ private:
 		}
 		return result;
 	}
-	static std::unique_ptr<AudioParameterGroup> makeOutputParamsGroup() {
+	static std::unique_ptr<AudioParameterGroup> makeUtilityParamsGroup() {
 		return std::make_unique<AudioParameterGroup>(
-							 groupToID(GroupID_e::OUTPUT), groupToName(GroupID_e::OUTPUT), "|",
+							 groupToID(GroupID_e::UTILITY), groupToName(GroupID_e::UTILITY), "|",
+							 std::make_unique<ChoiceParam>(
+									 juce::ParameterID { paramToID(PID_e::OVERSAMPLE_FACTOR),  1 },
+									 paramToName(PID_e::OVERSAMPLE_FACTOR),
+									 oversampleLabels,
+									 /*default index is 4x*/ 2 ),
 							 std::make_unique<APF>(JPID{ paramToID(PID_e::OUTPUT_GAIN), 1 }, paramToName(PID_e::OUTPUT_GAIN),
 												   makeGainRange(-60.0f, 0.0f),
 												   0.f));
@@ -335,7 +357,7 @@ private:
 		std::unique_ptr<AudioParameterGroup> modParamsTmp = makeModulationParamsGroup(*mainParamsTmp.get());
 		layout.add(std::move(mainParamsTmp));
 		layout.add(std::move(modParamsTmp));
-		layout.add(makeOutputParamsGroup());
+		layout.add(makeUtilityParamsGroup());
 		
 		return layout;
 	}
@@ -343,29 +365,34 @@ private:
 
 struct SmoothedParamsManager {
 	using PID_e = nvs::param::PID_e;
-
-	void reset (double sampleRate, int samplesPerBlock, juce::AudioProcessorValueTreeState& apvts) {
+	SmoothedParamsManager(juce::AudioProcessorValueTreeState& apvts)
+	:	_apvts(apvts)
+	{}
+	
+	void reset (double sampleRate, int samplesPerBlock) {
 		auto const rampTime = samplesPerBlock / sampleRate;
 		for (size_t i = 0; i < values.size(); ++i) {
 			values[i].reset (sampleRate, rampTime);
 			juce::String pid_str = nvs::param::paramToID((PID_e)(i));
-			values[i].setCurrentAndTargetValue(*apvts.getRawParameterValue(pid_str));
+			values[i].setCurrentAndTargetValue(*_apvts.getRawParameterValue(pid_str));
 		}
 	}
 
 	// call once per block
-	void updateTargets (juce::AudioProcessorValueTreeState& apvts) {
+	void updateTargets () {
 		for (size_t i = 0; i < values.size(); ++i){
 			juce::String pid_str = nvs::param::paramToID((PID_e)(i));
-			values[i].setTargetValue(*apvts.getRawParameterValue (pid_str));
+			values[i].setTargetValue(*_apvts.getRawParameterValue (pid_str));
 		}
 	}
 
 	float getNextValue (PID_e id) noexcept {
 		return values[(size_t)id].getNextValue();
 	}
+	
 private:
 	std::array<juce::SmoothedValue<float, juce::ValueSmoothingTypes::Linear>, (size_t)PID_e::NUM_PARAMS> values;
+	juce::AudioProcessorValueTreeState& _apvts;
 };
 
 }	// namespace param
