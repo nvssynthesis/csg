@@ -74,9 +74,9 @@ inline String groupToID(GroupID_e group) {
   X(PM_DEGRADE)             \
   X(DRIVE)					\
   X(CUTOFF)                 \
-  X(RESONANCE)              \
+  X(RESO)              		\
   X(TYPE_L)  		        \
-  X(TYPE_R) 		         \
+  X(TYPE_R) 		        \
   X(LFO_RATE)               \
   X(LFO_WAVE)               \
   X(DRONE)                  \
@@ -92,7 +92,7 @@ inline String groupToID(GroupID_e group) {
   X(PM_DEGRADE_MOD)         \
   X(DRIVE_MOD)				\
   X(CUTOFF_MOD)             \
-  X(RESONANCE_MOD)          \
+  X(RESO_MOD)          		\
   X(TYPE_L_MOD)      		\
   X(TYPE_R_MOD)      		\
   X(LFO_RATE_MOD)           \
@@ -150,14 +150,14 @@ static String getBaseNameFromModName(String baseParamID){
 	return baseParamID;
 }
 //=============================================================================================================================
-auto makeAPF = [](PID_e pid, NormRangeF range, float defaultVal) {
+auto makeAPF = [](PID_e pid, NormRangeF range, float defaultVal, int numDecimalPlaces = 3) {
 	return std::make_unique<APF>(
 		JPID{ paramToID(pid), 1 },
 		paramToName(pid),
 		std::move(range),
 		defaultVal,
-		juce::AudioParameterFloatAttributes().withStringFromValueFunction([](float value, int maximumStringLength) {
-			return juce::String(value, 3);
+		juce::AudioParameterFloatAttributes().withStringFromValueFunction([=](float value, int maximumStringLength) {
+			return juce::String(value, numDecimalPlaces, false);
 		}));
 };
 auto makeAPF2 = [](PID_e pid, NormRangeF range, float defaultVal,
@@ -280,7 +280,7 @@ private:
 	static std::unique_ptr<AudioParameterGroup> makeMainParamsGroup() {
 		std::unique_ptr<AudioParameterGroup> FMParameterGroup = std::make_unique<AudioParameterGroup>(
 												groupToID(GroupID_e::FM), 	groupToName(GroupID_e::FM), "|",
-												makeAPF(PID_e::SELF_FM, 	makeSelfFMRange(), 0.0f),
+												makeAPF(PID_e::SELF_FM, 	makeSelfFMRange(), 0.0f, 5),
 												makeAPF(PID_e::MEMORY,		NormRangeF{1.f, 32.f}, 1.f),
 												makeAPF(PID_e::FM_SMOOTH, 	makeFrequencyNormRange(), 2000.f),
 												makeAPF2(PID_e::FM_DEGRADE,	makeBitsRange(), 256.f, bitsValueToString, bitsStringToValue)
@@ -296,7 +296,7 @@ private:
 												groupToID(GroupID_e::FILTER), 	groupToName(GroupID_e::FILTER), "|",
 												makeAPF2(PID_e::DRIVE, 		makeGainRange(-60.f, 12.f), 1.0f, valueToString_dB, dB_stringToValue),
 												makeAPF(PID_e::CUTOFF, 		makeFrequencyNormRange(20.0, 22000.0), 12000.f ),
-												makeAPF(PID_e::RESONANCE, 	NormRangeF(0.f, 5.f), 1.f ),
+												makeAPF(PID_e::RESO, 	NormRangeF(0.f, 5.f), 1.f ),
 												makeFilterTypesParameter(paramToID(PID_e::TYPE_L), paramToName(PID_e::TYPE_L)),
 												makeFilterTypesParameter(paramToID(PID_e::TYPE_R), paramToName(PID_e::TYPE_R))
 																										  );
@@ -395,13 +395,16 @@ struct SmoothedParamsManager {
 		}
 	}
 
+	juce::NormalisableRange<float> getRange(PID_e id) const noexcept {
+		return _apvts.getParameterRange(nvs::param::paramToID(id));
+	}
+	
 	float getNextValue (PID_e id) noexcept {
 		return values[(size_t)id].getNextValue();
 	}
-	
+	juce::AudioProcessorValueTreeState& _apvts;
 private:
 	std::array<juce::SmoothedValue<float, juce::ValueSmoothingTypes::Linear>, (size_t)PID_e::NUM_PARAMS> values;
-	juce::AudioProcessorValueTreeState& _apvts;
 };
 
 }	// namespace param

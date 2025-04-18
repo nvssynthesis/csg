@@ -70,9 +70,14 @@ public:
 //		p.closeSubPath();  // <— this closes the polygon
 
 		// Now fill it
-		g.setColour (getCurrentColourScheme().getUIColour(ColourScheme::UIColour::defaultFill));
+		auto notchColour = getCurrentColourScheme().getUIColour(ColourScheme::UIColour::defaultFill);
+		if (sliderPosProportional == 0.0f){
+			notchColour = notchColour.withAlpha(0.5f);
+		}
+		g.setColour(notchColour);
 		g.fillPath (p);
 	}
+	
 private:
 	float const notchWidthDegrees {6.f};
 	juce::Colour notchColour {Colours::blueviolet};

@@ -46,7 +46,6 @@ void CSG::clearDelay()
 	//zLength = (sizeof(zLine)/sizeof(*zLine));
 	zLength = zLine.getNumSamples() - 1;
 	zLine.clear();
-	//std::cout << zLength;
 	rp = 0;
 	rp_neighbor = zLength;
 	wp = zLength;
@@ -66,6 +65,8 @@ float CSG::phasor_fm(float sample)
 	_phase = mod_1<double>(_phase);
 	return _phase;
 }
+
+
 
 float CSG::getWave()
 {
@@ -116,7 +117,7 @@ float CSG::getWave()
 	}(feedback_algo);
 
 	float feedback_amt = (clamp<float>(selfFM + _selfFM_MOD, 0.0f, 1.f) * 24000.f);
-	float feedback_cutoff = clamp<float>(FM_smooth + (FM_smooth * _FM_smooth_MOD * 3.f), 20.f, 20000.f);
+	float feedback_cutoff = clamp<float>( calcLogModdedVal(*_smoothedParams, PID_e::FM_SMOOTH, FM_smooth, _FM_smooth_MOD), 1.f, 22000.f);
 	
 	FM_filter.setCutoff(feedback_cutoff); // not smoothed currently
 	
@@ -127,11 +128,13 @@ float CSG::getWave()
 	
 	// on other hand, take sin and cos of phasor to do phase modulation (what will basically sound like wavefolding).
 	// we can fade between the sin and cos parts with equal power.
+	float const pmPreampTmp = calcLinearModdedVal(*_smoothedParams, PID_e::PM_AMOUNT, PM_preamp, _PM_preamp_MOD);
 	float weighted_sincos = ((trig_tables.up_sin_LUT(_phase) *  sqrt(1.f - (PM_sin2cos + _PM_sin2cos_MOD))) +
-					   (trig_tables.up_cos_LUT(_phase * 2.f - 1.f) * sqrt(PM_sin2cos + _PM_sin2cos_MOD))) * (PM_preamp + _PM_preamp_MOD);
+					   (trig_tables.up_cos_LUT(_phase * 2.f - 1.f) * sqrt(PM_sin2cos + _PM_sin2cos_MOD))) * pmPreampTmp;
 	
 	// now, bitcrush and filter that signal.
-	PM_filter.setCutoff(PM_smooth);	// not smoothed currently
+	float const pmSmoothTmp = clamp<float>( calcLogModdedVal(*_smoothedParams, PID_e::PM_TAME, PM_smooth, _PM_smooth_MOD), 1.f, 22000.f);
+	PM_filter.setCutoff(pmSmoothTmp);
 	float sinwin = PM_filter(crush<float>(weighted_sincos, clamp<float>(bits2 + (_bits_B_MOD * bits2), 1.01f, 2048.f) ));
 	
 	// sum the FM part and PM part. Make them both bipolar.

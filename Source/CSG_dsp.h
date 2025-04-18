@@ -16,9 +16,28 @@
 namespace nvs {
 
 template<typename float_t>
-float_t midiToHertz(float_t midiNote) // converts midiPitch to frequency in Hz
+inline float_t midiToHertz(float_t midiNote) // converts midiPitch to frequency in Hz
 {
 	return 440.0 * std::pow(2.0, ((midiNote - 69.0) / 12.0));
+}
+template<typename float_t>
+inline float_t hertzToMidi(float_t hertz)
+{
+	return 12.0 * log2(hertz / 440.0) + 69.0;
+}
+
+inline float calcLinearRange(nvs::param::SmoothedParamsManager const &smoothed, param::PID_e pid){
+	auto normRange = smoothed.getRange(pid);
+	return normRange.end - normRange.start;
+}
+inline float calcLinearModdedVal(nvs::param::SmoothedParamsManager const &smoothed, param::PID_e pid, float currentBaseVal, float currentModulationValM1P1){
+	return currentBaseVal + currentModulationValM1P1 * calcLinearRange(smoothed, pid);
+}
+inline float calcLogModdedVal(nvs::param::SmoothedParamsManager const &smoothed, param::PID_e pid, float currentBaseValHz, float currentModulationValM1P1){
+	auto modValSemitones = jmap(currentModulationValM1P1, -1.f, 1.f, -64.f, 64.f);
+	auto baseValSemitones = hertzToMidi(currentBaseValHz);
+	auto finalValSemitones = baseValSemitones + modValSemitones;
+	return midiToHertz(finalValSemitones);
 }
 
 namespace csg
