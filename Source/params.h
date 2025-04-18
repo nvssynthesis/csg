@@ -174,6 +174,11 @@ auto makeAPF2 = [](PID_e pid, NormRangeF range, float defaultVal,
 		valueFromString);
 };
 //=============================================================================================================================
+auto makeSelfFMRange = []() -> NormRangeF {
+	auto range = NormRangeF{0.0f, 1.0f};
+	range.setSkewForCentre(0.01f);
+	return range;
+};
 auto makeFrequencyNormRange = [](float f_low=20.f, float f_high=20000.f) -> NormRangeF {
 	return NormRangeF(f_low, f_high,
 	[](float start, float end, float normalised) {	// convertFrom0To1Func
@@ -183,7 +188,11 @@ auto makeFrequencyNormRange = [](float f_low=20.f, float f_high=20000.f) -> Norm
 		return std::log(value / start) / std::log(end / start);
 	});
 };
-auto makeTimingNormRange = []() -> NormRangeF { return NormRangeF(0.01f, 10000.f); };
+auto makeTimingNormRange = []() -> NormRangeF {
+	auto range = NormRangeF(0.01f, 10000.f);
+	range.setSkewForCentre(1.0f);
+	return range;
+};
 auto makeBitsRange = []() -> NormRangeF { return NormRangeF(0.01f, 1024.f,
 [](float start, float end, float normalised) -> float	// convertFrom0To1Func
 {
@@ -271,7 +280,7 @@ private:
 	static std::unique_ptr<AudioParameterGroup> makeMainParamsGroup() {
 		std::unique_ptr<AudioParameterGroup> FMParameterGroup = std::make_unique<AudioParameterGroup>(
 												groupToID(GroupID_e::FM), 	groupToName(GroupID_e::FM), "|",
-												makeAPF(PID_e::SELF_FM, 	NormRangeF{0.0f, 1.0f}, 0.0f),
+												makeAPF(PID_e::SELF_FM, 	makeSelfFMRange(), 0.0f),
 												makeAPF(PID_e::MEMORY,		NormRangeF{1.f, 32.f}, 1.f),
 												makeAPF(PID_e::FM_SMOOTH, 	makeFrequencyNormRange(), 2000.f),
 												makeAPF2(PID_e::FM_DEGRADE,	makeBitsRange(), 256.f, bitsValueToString, bitsStringToValue)

@@ -158,13 +158,13 @@ void CSGVoice::renderNextBlock (AudioBuffer<float> &outputBuffer, int startSampl
 		auto const outGain = _smoothedParams->getNextValue(nvs::param::PID_e::OUTPUT_GAIN);
 		
 		outputBuffer.addSample(0, startSample,
-							   (atanf(vcf_outL * nvs::memoryless::linterp<float>(env_currentVal, drone, drone)) * drive_compensate) * MINUS_NINE_DB * outGain);
+							(atanf(vcf_outL * nvs::memoryless::linterp<float>(env_currentVal, drone, drone)) * drive_compensate) * MINUS_NINE_DB * outGain);
 		
 		if (outputBuffer.getNumChannels() > 1)
 		{
 			float vcf_outR = getFilterVal(_smoothedParams->getNextValue(PID_e::TYPE_R));
 			outputBuffer.addSample(1, startSample,
-								(atanf(vcf_outR * nvs::memoryless::linterp<float>(env_currentVal, drone, drone)) * drive_compensate) * MINUS_NINE_DB * outGain);
+							(atanf(vcf_outR * nvs::memoryless::linterp<float>(env_currentVal, drone, drone)) * drive_compensate) * MINUS_NINE_DB * outGain);
 		}
 		
 		++startSample;
