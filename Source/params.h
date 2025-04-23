@@ -124,6 +124,7 @@ inline String paramToID(PID_e id) {
 	}
 }
 
+
 inline String replaceUnderscores(String str) {
 	str = str.replace("_", " ");
 	return str;
@@ -133,19 +134,28 @@ inline String paramToName(PID_e id){
 	return replaceUnderscores(paramToID(id));
 }
 
-static String makeModID(String paramID){
+inline String makeModID(String paramID){
 	paramID += "_MOD";
 	return paramID;
 }
-static String makeModName(String paramName){
+inline String makeModName(String paramName){
 	paramName += " MOD";
 	return paramName;
 }
-static String getBaseIDFromModPID(String baseParamID){
+
+inline constexpr PID_e basePIDToModPID(PID_e id) {
+	return PID_e(size_t(id) + 18);
+}
+static_assert(basePIDToModPID(PID_e::SELF_FM) == PID_e::SELF_FM_MOD);
+static_assert(basePIDToModPID(PID_e::PM_TAME) == PID_e::PM_TAME_MOD);
+static_assert(basePIDToModPID(PID_e::CUTOFF) == PID_e::CUTOFF_MOD);
+
+
+inline String getBaseIDFromModPID(String baseParamID){
 	baseParamID.removeCharacters("_MOD");
 	return baseParamID;
 }
-static String getBaseNameFromModName(String baseParamID){
+inline String getBaseNameFromModName(String baseParamID){
 	baseParamID.removeCharacters(" MOD");
 	return baseParamID;
 }

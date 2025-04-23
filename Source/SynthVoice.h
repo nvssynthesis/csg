@@ -54,6 +54,8 @@ private:
 	bool sampleRateValid() const;
 	
 	float gate;
+	float lfo_out;	// currently used to give float*const to CSG::addModSource
+	std::vector<float const*> modSources {&lfo_out};
 };
 
 }	//	namespace nvs::csg

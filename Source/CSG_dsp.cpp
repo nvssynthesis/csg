@@ -116,27 +116,34 @@ float CSG::getWave()
 		}
 	}(feedback_algo);
 
-	float feedback_amt = (clamp<float>(selfFM + _selfFM_MOD, 0.0f, 1.f) * 24000.f);
-	float feedback_cutoff = clamp<float>( calcLogModdedVal(*_smoothedParams, PID_e::FM_SMOOTH, FM_smooth, _FM_smooth_MOD), 1.f, 22000.f);
+//	float feedback_amt = clamp<float>(selfFM + _selfFM_MOD, 0.0f, 1.f) * 24000.f;
+	float feedback_amt = clamp<float>(calcLinearModdedVal(*_smoothedParams, PID_e::SELF_FM, modSources), 0.0f, 1.0f) * 24000.0f;	// is the clamp really essential?
+	float feedback_cutoff = clamp<float>( calcLogModdedVal(*_smoothedParams, PID_e::FM_SMOOTH, modSources), 1.f, getSampleRate() / 2 - 50.f);
 	
 	FM_filter.setCutoff(feedback_cutoff); // not smoothed currently
 	
 	float feedback = FM_filter(fedback_delta * (fs * 0.000021f) * feedback_amt);
 	
 	// bitcrush that fed-back signal.
-	float crushed_freqmod_sig = crush<float>(phasor_fm(feedback), clamp<float>(bits1 + (_bits_A_MOD * bits1), 1.01f, 2048.f));
+//	auto const bits_a = clamp<float>(bits1 + (_bits_A_MOD * bits1), 1.01f, 2048.f);
+	auto const fm_degrade = clamp<float>(calcLinearModdedVal(*_smoothedParams, PID_e::FM_DEGRADE, modSources), 1.01f, 2048.f);
+	float crushed_freqmod_sig = crush<float>(phasor_fm(feedback), fm_degrade);
 	
 	// on other hand, take sin and cos of phasor to do phase modulation (what will basically sound like wavefolding).
 	// we can fade between the sin and cos parts with equal power.
-	float const pmPreampTmp = calcLinearModdedVal(*_smoothedParams, PID_e::PM_AMOUNT, PM_preamp, _PM_preamp_MOD);
-	float weighted_sincos = ((trig_tables.up_sin_LUT(_phase) *  sqrt(1.f - (PM_sin2cos + _PM_sin2cos_MOD))) +
-					   (trig_tables.up_cos_LUT(_phase * 2.f - 1.f) * sqrt(PM_sin2cos + _PM_sin2cos_MOD))) * pmPreampTmp;
+	float const pmPreampTmp = calcLinearModdedVal(*_smoothedParams, PID_e::PM_AMOUNT, modSources);
+	auto const pmShapeTmp = calcLinearModdedVal(*_smoothedParams, PID_e::PM_SHAPE, modSources);
+	float weighted_sincos = ((trig_tables.up_sin_LUT(_phase) *  sqrt(1.f - (pmShapeTmp))) +
+					   (trig_tables.up_cos_LUT(_phase * 2.f - 1.f) * sqrt(pmShapeTmp))) * pmPreampTmp;
 	
 	// now, bitcrush and filter that signal.
-	float const pmSmoothTmp = clamp<float>( calcLogModdedVal(*_smoothedParams, PID_e::PM_TAME, PM_smooth, _PM_smooth_MOD), 1.f, 22000.f);
+	float const pmSmoothTmp = clamp<float>( calcLogModdedVal(*_smoothedParams, PID_e::PM_TAME, modSources), 1.f, getSampleRate() / 2 - 50.f);
 	PM_filter.setCutoff(pmSmoothTmp);
-	float sinwin = PM_filter(crush<float>(weighted_sincos, clamp<float>(bits2 + (_bits_B_MOD * bits2), 1.01f, 2048.f) ));
 	
+	auto const pm_degrade = calcLinearModdedVal(*_smoothedParams, PID_e::PM_DEGRADE, modSources);
+//	float sinwin = PM_filter(crush<float>(weighted_sincos, clamp<float>(bits2 + (_bits_B_MOD * bits2), 1.01f, 2048.f) ));
+	float sinwin = PM_filter(crush<float>(weighted_sincos, clamp<float>(pm_degrade, 1.01f, 2048.f) ));
+
 	// sum the FM part and PM part. Make them both bipolar.
 	float junction = unibi<float>(crushed_freqmod_sig) + sinwin;
 	// 2 samples ago, used for derivative.

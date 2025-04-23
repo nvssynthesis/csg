@@ -30,12 +30,17 @@ inline float calcLinearRange(nvs::param::SmoothedParamsManager const &smoothed, 
 	auto normRange = smoothed.getRange(pid);
 	return normRange.end - normRange.start;
 }
-inline float calcLinearModdedVal(nvs::param::SmoothedParamsManager const &smoothed, param::PID_e pid, float currentBaseVal, float currentModulationValM1P1){
-	return currentBaseVal + currentModulationValM1P1 * calcLinearRange(smoothed, pid);
+inline float calcLinearModdedVal(nvs::param::SmoothedParamsManager &smoothed, param::PID_e pid, std::vector<float const*> modSources){
+	auto const modVal = *modSources[0];
+	return smoothed.getNextValue(pid) + modVal * smoothed.getNextValue(basePIDToModPID(pid)) * calcLinearRange(smoothed, pid);
 }
-inline float calcLogModdedVal(nvs::param::SmoothedParamsManager const &smoothed, param::PID_e pid, float currentBaseValHz, float currentModulationValM1P1){
-	auto modValSemitones = jmap(currentModulationValM1P1, -1.f, 1.f, -64.f, 64.f);
-	auto baseValSemitones = hertzToMidi(currentBaseValHz);
+inline float calcLogModdedVal(nvs::param::SmoothedParamsManager &smoothed, param::PID_e pid, std::vector<float const*> modSources){
+	auto const modVal = *modSources[0];
+	auto const baseValHz = smoothed.getNextValue(pid);
+	auto const modAmtVal = smoothed.getNextValue(basePIDToModPID(pid)) * modVal;
+	
+	auto baseValSemitones = hertzToMidi(baseValHz);
+	auto modValSemitones = jmap(modAmtVal, -1.f, 1.f, -64.f, 64.f);
 	auto finalValSemitones = baseValSemitones + modValSemitones;
 	return midiToHertz(finalValSemitones);
 }
@@ -55,17 +60,20 @@ public:
 	float phasor_fm(float sample);
 	float getWave();
 	
-public:
 	/*
 	 TODO: figure out better schema for coupling direct params and their modulation counterparts, and make raw values private
 	 */
 	
-	float _selfFM_MOD, _FM_smooth_MOD, _bits_A_MOD, _PM_preamp_MOD, _PM_sin2cos_MOD, _bits_B_MOD, _PM_smooth_MOD;
-	
+//	float _selfFM_MOD, _FM_smooth_MOD, _bits_A_MOD, _PM_preamp_MOD, _PM_sin2cos_MOD, _bits_B_MOD, _PM_smooth_MOD;
+	void addModSource(float const* source){
+		modSources.push_back(source);
+	}
 private:
 	double fs, fs_delta;
 	double _freq {110.0};
 	double _phase;  // master phasor
+	
+	std::vector<float const*> modSources;
 	
 	nvs::param::SmoothedParamsManager *_smoothedParams;
 	

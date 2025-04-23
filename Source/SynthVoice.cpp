@@ -17,6 +17,7 @@ CSGVoice::CSGVoice(nvs::param::SmoothedParamsManager *smoothedParams)
 	unit(_smoothedParams)
 {
 	svf.set_oversample(4);
+	unit.addModSource(&lfo_out);
 }
 bool CSGVoice::canPlaySound (SynthesiserSound* sound)
 {
@@ -80,12 +81,20 @@ void CSGVoice::prepareToPlay(double sampleRate, int samplesPerBlock) {
 	_smoothedParams->reset(sampleRate, samplesPerBlock);
 }
 
+unsigned int powi2(int exp) {
+	// integer power of 2
+	if (exp < 0) {
+	  return 0;
+	}
+	return 1 << exp;
+}
+
 void CSGVoice::renderNextBlock (AudioBuffer<float> &outputBuffer, int startSample, int numSamples)
 {
 	jassert (sampleRateValid());
 	using PID_e = nvs::param::PID_e;
 
-	unsigned int const oversampleFactor = std::pow(2, (float)_smoothedParams->_apvts.getRawParameterValue(param::paramToID( PID_e::OVERSAMPLE_FACTOR ))->load());
+	unsigned int const oversampleFactor = powi2(_smoothedParams->_apvts.getRawParameterValue(param::paramToID( PID_e::OVERSAMPLE_FACTOR ))->load());
 	setSVFOversampling(oversampleFactor);
 	
 	env.setBlockSize(numSamples);
@@ -102,29 +111,21 @@ void CSGVoice::renderNextBlock (AudioBuffer<float> &outputBuffer, int startSampl
 	{
 		lfo._freq = _smoothedParams->getNextValue(PID_e::LFO_RATE);
 		lfo.phasor();   // increment internal phase of LFO
-		auto const lfo_out = lfo.multi(_smoothedParams->getNextValue(PID_e::LFO_WAVE));
+		lfo_out = lfo.multi(_smoothedParams->getNextValue(PID_e::LFO_WAVE));
 		
-		unit._selfFM_MOD = lfo_out * _smoothedParams->getNextValue(PID_e::SELF_FM_MOD);
-		unit._FM_smooth_MOD = lfo_out * _smoothedParams->getNextValue(PID_e::FM_SMOOTH_MOD);
-		unit._bits_A_MOD = lfo_out * _smoothedParams->getNextValue(PID_e::FM_DEGRADE_MOD);
+//		unit._selfFM_MOD = lfo_out * _smoothedParams->getNextValue(PID_e::SELF_FM_MOD);
+//		unit._FM_smooth_MOD = lfo_out * _smoothedParams->getNextValue(PID_e::FM_SMOOTH_MOD);
+//		unit._bits_A_MOD = lfo_out * _smoothedParams->getNextValue(PID_e::FM_DEGRADE_MOD);
+//
+//
+//		unit._PM_preamp_MOD = lfo_out * _smoothedParams->getNextValue(PID_e::PM_AMOUNT_MOD);
+//		unit._PM_smooth_MOD = lfo_out * _smoothedParams->getNextValue(PID_e::PM_TAME_MOD);
+//
+//		unit._bits_B_MOD = ((lfo_out * 2 - 1) * 256.f) * _smoothedParams->getNextValue(PID_e::PM_DEGRADE_MOD);
+//
+//		unit._PM_sin2cos_MOD = lfo_out * _smoothedParams->getNextValue(PID_e::PM_SHAPE_MOD);
 		
-		
-		unit._PM_preamp_MOD = lfo_out * _smoothedParams->getNextValue(PID_e::PM_AMOUNT_MOD);
-		unit._PM_smooth_MOD = lfo_out * _smoothedParams->getNextValue(PID_e::PM_TAME_MOD);
-		
-		unit._bits_B_MOD = ((lfo_out * 2 - 1) * 256.f) * _smoothedParams->getNextValue(PID_e::PM_DEGRADE_MOD);
-		
-		unit._PM_sin2cos_MOD = lfo_out * _smoothedParams->getNextValue(PID_e::PM_SHAPE_MOD);
-		
-		if (false){
-			float const cutoffMod = nvs::midiToHertz(lfo_out * _smoothedParams->getNextValue(PID_e::CUTOFF_MOD) * 127.0);
-			// avoid this tanh for saturating the frequency mod
-			float const cutM1P1 = jmap(cutoffMod + _smoothedParams->getNextValue(PID_e::CUTOFF), 20.0f, 22050.0f, -0.1f, 0.1f);
-			float const cutNorm = tanh(cutM1P1);
-			float const cutDenorm = jmap(cutNorm, -0.1f, 0.1f, 20.0f, 22050.0f);
-		}
-		
-		float const finalCutoff = nvs::memoryless::clamp<float>( calcLogModdedVal(*_smoothedParams, PID_e::CUTOFF, _smoothedParams->getNextValue(PID_e::CUTOFF), lfo_out * _smoothedParams->getNextValue(PID_e::CUTOFF_MOD)), 1.f, (float)getSampleRate() / 2.f - 50.f);
+		float const finalCutoff = nvs::memoryless::clamp<float>( calcLogModdedVal(*_smoothedParams, PID_e::CUTOFF, modSources), 1.f, (float)getSampleRate() / 2.f - 50.f);
 		svf.setCutoff(finalCutoff);
 		
 		auto const res = jlimit(0.0f, 6.0f, 5.0f * lfo_out * _smoothedParams->getNextValue(PID_e::RESO_MOD) + _smoothedParams->getNextValue(PID_e::RESO));
