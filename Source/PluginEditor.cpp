@@ -75,7 +75,7 @@ ModulatedSlider::ModulatedSlider(juce::AudioProcessorValueTreeState &apvts,
 {
 	setupSlider(apvts, param.getParameterID(), _baseSlider);
 	_baseSlider.setSliderStyle(sliderStyle);
-	_baseSlider.setTextBoxStyle(entryPos, false, 50, 25);
+	_baseSlider.setTextBoxStyle(entryPos, true, 50, 25);
 
 	_baseSlider.setColour(Slider::ColourIds::thumbColourId, juce::Colours::palevioletred);
 	_baseSlider.setColour(Slider::ColourIds::textBoxTextColourId, juce::Colours::lightgrey);
@@ -162,7 +162,8 @@ void AttachedComboBox::resized() {
 
 
 CsgAudioProcessorEditor::CsgAudioProcessorEditor (CsgAudioProcessor& p)
-    : AudioProcessorEditor (&p), processor (p)
+: 	AudioProcessorEditor (&p), processor (p)
+,	tooltipWindow (this, 500)      // hover‐delay = 500 ms
 {
 	juce::AudioProcessorValueTreeState &apvts = processor.getAPVTS();
 	
@@ -199,6 +200,7 @@ CsgAudioProcessorEditor::CsgAudioProcessorEditor (CsgAudioProcessor& p)
 						
 						acb->_comboBox.addItemList (nvs::param::oversampleLabels, /*item IDs start at 1*/ 1);
 						acb->_comboBox.setSelectedItemIndex (a->getIndex(), juce::dontSendNotification);
+						acb->_comboBox.setTooltip ("Oversampling (Improves filter accuracy for high frequencies)");
 						comboBoxes.push_back(std::move(acb));
 					}
 				}

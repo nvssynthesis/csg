@@ -160,7 +160,7 @@ inline String getBaseNameFromModName(String baseParamID){
 	return baseParamID;
 }
 //=============================================================================================================================
-auto makeAPF = [](PID_e pid, NormRangeF range, float defaultVal, int numDecimalPlaces = 3) {
+auto makeAPF = [](PID_e pid, NormRangeF range, float defaultVal, int numDecimalPlaces = 2) {
 	return std::make_unique<APF>(
 		JPID{ paramToID(pid), 1 },
 		paramToName(pid),
@@ -305,7 +305,7 @@ private:
 		std::unique_ptr<AudioParameterGroup> filterParameterGroup = std::make_unique<AudioParameterGroup>(
 												groupToID(GroupID_e::FILTER), 	groupToName(GroupID_e::FILTER), "|",
 												makeAPF2(PID_e::DRIVE, 		makeGainRange(-60.f, 12.f), 1.0f, valueToString_dB, dB_stringToValue),
-												makeAPF(PID_e::CUTOFF, 		makeFrequencyNormRange(20.0, 22000.0), 12000.f ),
+												makeAPF(PID_e::CUTOFF, 		makeFrequencyNormRange(20.0, 22000.0), 12000.f, 1),
 												makeAPF(PID_e::RESO, 	NormRangeF(0.f, 5.f), 1.f ),
 												makeFilterTypesParameter(paramToID(PID_e::TYPE_L), paramToName(PID_e::TYPE_L)),
 												makeFilterTypesParameter(paramToID(PID_e::TYPE_R), paramToName(PID_e::TYPE_R))

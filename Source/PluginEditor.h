@@ -26,6 +26,17 @@ public:
 		setColourScheme(scheme);
 	}
 
+	void drawPieSegment(juce::Graphics &g, juce::Rectangle<float> ellipseRect, float angle, float notchWidth, float sliderPosProportional, juce::Colour notchCol){
+		juce::Path p;
+		p.addPieSegment(ellipseRect.reduced(1.f), angle - juce::degreesToRadians(notchWidth), angle + juce::degreesToRadians(notchWidth), 0.f);
+
+		// Now fill it
+		if (sliderPosProportional == 0.0f){
+			notchCol = notchCol.withAlpha(0.5f);
+		}
+		g.setColour(notchCol);
+		g.fillPath (p);
+	}
 	void drawRotarySlider (juce::Graphics& g,
 						   int x, int y, int width, int height,
 						   float sliderPosProportional,
@@ -56,7 +67,6 @@ public:
 		const float innerRadius     = radius * 0.2f;  // start of the notch
 		const float notchLength     = radius * 0.6f;  // how long the notch is
 		const float outerRadius     = innerRadius + notchLength;
-		const float notchThickness  = 0.9f;           // thickness of the line
 		[[maybe_unused]] auto makeLine = [=](float a){
 			float x1 = centreX + std::cos (a) * innerRadius;
 			float y1 = centreY + std::sin (a) * innerRadius;
@@ -64,23 +74,13 @@ public:
 			float y2 = centreY + std::sin (a) * outerRadius;
 			return Line(Point(x1, y1), Point(x2, y2));
 		};
-		
-		juce::Path p;
-		p.addPieSegment(ellipseRect.reduced(5.f), angle - juce::degreesToRadians(notchWidthDegrees), angle + juce::degreesToRadians(notchWidthDegrees), 0.f);
-//		p.closeSubPath();  // <— this closes the polygon
-
-		// Now fill it
-		auto notchColour = getCurrentColourScheme().getUIColour(ColourScheme::UIColour::defaultFill);
-		if (sliderPosProportional == 0.0f){
-			notchColour = notchColour.withAlpha(0.5f);
-		}
-		g.setColour(notchColour);
-		g.fillPath (p);
+		drawPieSegment(g, ellipseRect, angle, notchWidthDegrees * 1.8f, sliderPosProportional, juce::Colours::black);
+		drawPieSegment(g, ellipseRect, angle, notchWidthDegrees, 		sliderPosProportional, getCurrentColourScheme().getUIColour(ColourScheme::UIColour::defaultFill));
 	}
 	
 private:
-	float const notchWidthDegrees {6.f};
-	juce::Colour notchColour {Colours::blueviolet};
+	float const notchWidthDegrees {8.f};
+	juce::Colour notchColour {juce::Colour(Colours::blueviolet).withMultipliedLightness(0.5f)};
 };
 struct ModulatedSlider	:	public juce::Component
 {
@@ -157,7 +157,7 @@ private:
     // This reference is provided as a quick way for your editor to
     // access the processor object that created it.
     CsgAudioProcessor& processor;
-    
+	TooltipWindow     tooltipWindow;
 	NotchLookAndFeel notchLAF;
 	
 	std::vector<std::unique_ptr<ModulatedSlider>> sliders;
