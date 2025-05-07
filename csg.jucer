@@ -6,7 +6,7 @@
               jucerFormatVersion="1" headerPath="../../nvs_libraries&#10;../../Sprout"
               cppLanguageStandard="20" pluginFormats="buildAU,buildStandalone,buildVST3"
               pluginManufacturerCode="Nvss" pluginCode="Csgs" pluginChannelConfigs="{1, 1}, {2, 2}"
-              version="0.2.0">
+              version="0.3.0">
   <MAINGROUP id="eGLGw9" name="csg">
     <GROUP id="{69A94108-40CB-F911-8559-A14C4205D062}" name="Source">
       <GROUP id="{D5509354-C77A-5E73-CEED-481B879D73D7}" name="nvs_libraries">
@@ -30,8 +30,10 @@
       <FILE id="vWWr5D" name="PluginEditor.h" compile="0" resource="0" file="Source/PluginEditor.h"/>
       <FILE id="LZ4nIJ" name="SynthVoice.h" compile="0" resource="0" file="Source/SynthVoice.h"/>
       <FILE id="cYgFCG" name="SynthVoice.cpp" compile="1" resource="0" file="Source/SynthVoice.cpp"/>
-      <FILE id="wxFMxn" name="enclosure_medium.png" compile="0" resource="1"
-            file="Source/enclosure_medium.png"/>
+    </GROUP>
+    <GROUP id="{F2CC6C70-0D53-3516-2FFC-DB0764CE9A99}" name="Resources">
+      <FILE id="FZgdc3" name="enclosure480.1.png" compile="0" resource="1"
+            file="Resources/enclosure480.1.png"/>
     </GROUP>
   </MAINGROUP>
   <EXPORTFORMATS>

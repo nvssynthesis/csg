@@ -225,8 +225,8 @@ CsgAudioProcessorEditor::CsgAudioProcessorEditor (CsgAudioProcessor& p)
 	for (auto & cb : comboBoxes){
 		addAndMakeVisible(cb.get());
 	}
-	backgroundImage = ImageCache::getFromMemory (BinaryData::enclosure_medium_png,
-												 BinaryData::enclosure_medium_pngSize);
+	backgroundImage = ImageCache::getFromMemory (BinaryData::enclosure480_1_png,
+												 BinaryData::enclosure480_1_pngSize);
 	
 	double const bg_w = backgroundImage.getWidth();
 	double const bg_h = backgroundImage.getHeight();
@@ -236,6 +236,7 @@ CsgAudioProcessorEditor::CsgAudioProcessorEditor (CsgAudioProcessor& p)
 
 	auto const ratio = bg_w / bg_h;
 	getConstrainer()->setFixedAspectRatio(ratio);
+	getConstrainer()->setMinimumWidth(628);
 
 	setSize (bg_w, bg_h);
 }
