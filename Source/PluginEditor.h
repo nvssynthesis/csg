@@ -100,7 +100,7 @@ public:
 			float y2 = centreY + std::sin (a) * outerRadius;
 			return Line(Point(x1, y1), Point(x2, y2));
 		};
-		drawPieSegment(g, ellipseRect, angle, notchWidthDegrees * 1.8f, sliderPosProportional, juce::Colours::black);
+		drawPieSegment(g, ellipseRect, angle, notchWidthDegrees * 1.618f, sliderPosProportional, juce::Colours::black);
 		drawPieSegment(g, ellipseRect, angle, notchWidthDegrees, 		sliderPosProportional, getCurrentColourScheme().getUIColour(ColourScheme::UIColour::defaultFill));
 	}
 	
@@ -181,8 +181,10 @@ public:
     
 private:
     CsgAudioProcessor& processor;
-	TooltipWindow     tooltipWindow;
+	TooltipWindow  tooltipWindow;
 	NotchLookAndFeel notchLAF;
+	juce::HyperlinkButton   visitSiteButton { "info & donate @ nvssynthesis",
+								   URL ("https://nvssynthesis.github.io/") };
 	
 	std::vector<std::unique_ptr<ModulatedSlider>> sliders;
 	std::vector<std::unique_ptr<UtilityKnob>> knobs;

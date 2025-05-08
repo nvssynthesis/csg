@@ -89,7 +89,7 @@ ModulatedSlider::ModulatedSlider(juce::AudioProcessorValueTreeState &apvts,
 
 	_label.setFont({"Palatino", 13.f, 0});
 	_label.attachToComponent(&_baseSlider, false);
-	_label.setColour(juce::Label::textColourId, juce::Colours::black);
+	_label.setColour(juce::Label::textColourId, juce::Colours::lightgrey);
 	_label.setText(_paramName, dontSendNotification);
 	
 	addAndMakeVisible(_baseSlider);
@@ -228,6 +228,10 @@ CsgAudioProcessorEditor::CsgAudioProcessorEditor (CsgAudioProcessor& p)
 	for (auto & cb : comboBoxes){
 		addAndMakeVisible(cb.get());
 	}
+	addAndMakeVisible(visitSiteButton);
+	visitSiteButton.setColour (juce::HyperlinkButton::textColourId, juce::Colour(Colours::deepskyblue).withMultipliedLightness(0.7));
+	visitSiteButton.setFont(Font("Palatino", 14.f, Font::plain), false);
+
 	backgroundImage = ImageCache::getFromMemory (BinaryData::enclosure480_1_png,
 												 BinaryData::enclosure480_1_pngSize);
 	
@@ -290,7 +294,7 @@ void CsgAudioProcessorEditor::resized()
 	auto area = getLocalBounds()
 					.withTrimmedLeft  (pad)
 					.withTrimmedRight (pad)
-					.withTrimmedBottom(pad)
+					.withTrimmedBottom(pad * 7)
 					.withTrimmedTop   (topPad)
 					.toFloat();
 
@@ -369,5 +373,8 @@ void CsgAudioProcessorEditor::resized()
 
 	layoutRow (topArea,    topGroups);
 	layoutRow (bottomArea, bottomGroups);
+	
+	visitSiteButton.setBounds (pad, getHeight() - pad * 5,
+							   178, pad * 5);
 }
 
