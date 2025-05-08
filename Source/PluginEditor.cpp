@@ -78,7 +78,7 @@ ModulatedSlider::ModulatedSlider(juce::AudioProcessorValueTreeState &apvts,
 	_baseSlider.setTextBoxStyle(entryPos, true, 50, 25);
 
 	_baseSlider.setColour(Slider::ColourIds::thumbColourId, juce::Colours::palevioletred);
-	_baseSlider.setColour(Slider::ColourIds::textBoxTextColourId, juce::Colours::lightgrey);
+	_baseSlider.setColour(Slider::ColourIds::textBoxTextColourId, juce::Colours::darkgrey);
 	
 	setupSlider(apvts, nvs::param::makeModID(param.getParameterID()), _modulationSlider);
 	_modulationSlider.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
@@ -89,6 +89,7 @@ ModulatedSlider::ModulatedSlider(juce::AudioProcessorValueTreeState &apvts,
 
 	_label.setFont({"Palatino", 13.f, 0});
 	_label.attachToComponent(&_baseSlider, false);
+	_label.setColour(juce::Label::textColourId, juce::Colours::black);
 	_label.setText(_paramName, dontSendNotification);
 	
 	addAndMakeVisible(_baseSlider);
@@ -254,8 +255,11 @@ void CsgAudioProcessorEditor::paint (Graphics& g)
 							 backgroundImage.getHeight(),
 				 /*alpha*/  false);
 	
-	g.setColour(Colours::white);
+	g.setColour (Colours::black.withAlpha (0.3f));
+	g.fillRect (getLocalBounds());
+
 #ifdef JUCE_DEBUG
+	g.setColour(Colours::white);
 	g.drawText("debug", 1, 1, 100, 10, Justification::topLeft);
 #endif
 	

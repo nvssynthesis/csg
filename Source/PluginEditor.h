@@ -18,19 +18,45 @@ class NotchLookAndFeel  : public juce::LookAndFeel_V4
 public:
 	NotchLookAndFeel()
 	{
-		// You can customize default colours here if you like:
 		setColour (juce::Slider::rotarySliderOutlineColourId, juce::Colours::darkgrey);
 		setColour (juce::Slider::thumbColourId, juce::Colours::white); // not used
 		auto scheme = getDarkColourScheme();
 		scheme.setUIColour(ColourScheme::UIColour::defaultFill, notchColour);
 		setColourScheme(scheme);
 	}
+	void drawLinearSlider (Graphics& g,
+						   int x, int y, int width, int height,
+						   float sliderPos,
+						   float minSliderPos, float maxSliderPos,
+						   Slider::SliderStyle style,
+						   Slider& s) override
+	{
+		if (style == Slider::LinearBarVertical)
+		{
+			LookAndFeel_V4::drawLinearSlider (g, x, y, width, height,
+											  sliderPos, minSliderPos, maxSliderPos,
+											  style, s);
 
+			Rectangle<int> tb (x, y + (height/2 - 10), width, 20);
+
+			bool over    = (tb.getCentreY() >= sliderPos);
+			g.setColour (over ? juce::Colour(Colours::grey).withMultipliedBrightness(1.25f) : juce::Colour(Colours::grey).withMultipliedBrightness(1.5f));
+
+			g.setFont(Font ("Palatino", 13.5f, Font::plain));
+			g.drawFittedText (s.getTextFromValue (s.getValue()),
+							  tb, Justification::centred, 1);
+		}
+		else
+		{
+			LookAndFeel_V4::drawLinearSlider (g, x, y, width, height,
+											  sliderPos, 0.0f, 0.0f,
+											  style, s);
+		}
+	}
 	void drawPieSegment(juce::Graphics &g, juce::Rectangle<float> ellipseRect, float angle, float notchWidth, float sliderPosProportional, juce::Colour notchCol){
 		juce::Path p;
 		p.addPieSegment(ellipseRect.reduced(1.f), angle - juce::degreesToRadians(notchWidth), angle + juce::degreesToRadians(notchWidth), 0.f);
 
-		// Now fill it
 		if (sliderPosProportional == 0.0f){
 			notchCol = notchCol.withAlpha(0.5f);
 		}
@@ -92,7 +118,7 @@ struct ModulatedSlider	:	public juce::Component
 					juce::RangedAudioParameter const &param,
 					String paramGroupName = "",
 					Slider::SliderStyle sliderStyle = juce::Slider::LinearBarVertical,
-					juce::Slider::TextEntryBoxPosition entryPos = juce::Slider::TextBoxBelow);
+					juce::Slider::TextEntryBoxPosition entryPos = juce::Slider::NoTextBox);
 	void resized() override;
 	String getParamName() const { return _paramName; }
 	String getParamGroupName() const { return _paramGroupName; }
@@ -154,8 +180,6 @@ public:
     void resized() override;
     
 private:
-    // This reference is provided as a quick way for your editor to
-    // access the processor object that created it.
     CsgAudioProcessor& processor;
 	TooltipWindow     tooltipWindow;
 	NotchLookAndFeel notchLAF;
