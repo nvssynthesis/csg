@@ -286,6 +286,41 @@ private:
 									 .withAutomatable(true)
 									 );
 	}
+	static std::unique_ptr<APF> makeLFOWaveParameter(juce::String pid_str, juce::String param_str) {
+//		(const ParameterID &parameterID, const String &parameterName, NormalisableRange< float > normalisableRange, float defaultValue, const AudioParameterFloatAttributes &attributes={})
+		return std::make_unique<APF>( JPID{ pid_str, 1 }, param_str, NormRangeF(0.f, 3.f), 0.f,
+									 juce::AudioParameterFloatAttributes()
+									 .withStringFromValueFunction([](float value, int maximumStringLength) -> juce::String {	// stringFromFloat
+										 if (value == int(value)){
+											 switch(int(value))
+											 {
+												 case 0:
+													 return "Sine";
+												 case 1:
+													 return "Saw";
+												 case 2:
+													 return "Square";
+												 case 3:
+													 return "Triangle";
+											 }
+										 }
+										 if (value < 1.0) 		{ return "Sin/Saw"; 	}
+										 else if (value < 2.0) 	{ return "Saw/Square"; 	}
+										 else if (value < 3.0) 	{ return "Square/Tri"; 	}
+										 return juce::String(value);
+									 })
+									 .withValueFromStringFunction([](const String &text) -> float 	// floatFromString
+									 {
+										 if (text.isEmpty())      return 0.f;
+										 else if (text.startsWithIgnoreCase("si")) { return 0.f; }
+										 else if (text.startsWithIgnoreCase("sa")) { return 1.f; }
+										 else if (text.startsWithIgnoreCase("sq")) { return 2.f; }
+										 else if (text.startsWithIgnoreCase("tr")) { return 3.f; }
+										 else 	 {return text.getFloatValue();}
+									 })
+									 .withAutomatable(true)
+									 );
+	}
 	
 	static std::unique_ptr<AudioParameterGroup> makeMainParamsGroup() {
 		std::unique_ptr<AudioParameterGroup> FMParameterGroup = std::make_unique<AudioParameterGroup>(
@@ -313,7 +348,7 @@ private:
 		std::unique_ptr<AudioParameterGroup> LFOParameterGroup = std::make_unique<AudioParameterGroup>(
 												groupToID(GroupID_e::LFO), 	groupToName(GroupID_e::LFO), "|",
 												makeAPF(PID_e::LFO_RATE, 	makeFrequencyNormRange(0.023f, 230.f), 1.f ),
-												makeAPF(PID_e::LFO_WAVE, 	NormRangeF(0.f, 3.f), 0.f )
+											    makeLFOWaveParameter(paramToID(PID_e::LFO_WAVE), paramToName(PID_e::LFO_WAVE))
 																									   );
 		std::unique_ptr<AudioParameterGroup> envelopeParameterGroup = std::make_unique<AudioParameterGroup>(
 												groupToID(GroupID_e::ENVELOPE), 	groupToName(GroupID_e::ENVELOPE), "|",
@@ -368,7 +403,7 @@ private:
 									 /*default index is 4x*/ 2 ),
 							 std::make_unique<APF>(JPID{ paramToID(PID_e::OUTPUT_GAIN), 1 }, paramToName(PID_e::OUTPUT_GAIN),
 												   makeGainRange(-60.0f, 0.0f),
-												   0.f));
+												   0.5f));	// not sure why it is not specified in the log scaling, but here: -6dB default
 	}
 	static juce::AudioProcessorValueTreeState::ParameterLayout createParamLayout() {
 		juce::AudioProcessorValueTreeState::ParameterLayout layout;
