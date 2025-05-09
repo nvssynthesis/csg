@@ -230,7 +230,7 @@ CsgAudioProcessorEditor::CsgAudioProcessorEditor (CsgAudioProcessor& p)
 		addAndMakeVisible(cb.get());
 	}
 	addAndMakeVisible(visitSiteButton);
-	visitSiteButton.setColour (juce::HyperlinkButton::textColourId, juce::Colour(Colours::deepskyblue).withMultipliedLightness(0.7));
+	visitSiteButton.setColour (juce::HyperlinkButton::textColourId, juce::Colour(Colours::deepskyblue).withAlpha(0.7f));
 	visitSiteButton.setFont(Font("Palatino", 14.f, Font::plain), false);
 	visitSiteButton.setJustificationType(Justification::bottomLeft);
 
@@ -264,7 +264,7 @@ void CsgAudioProcessorEditor::paint (Graphics& g)
 	g.setColour (Colours::black.withAlpha (0.3f));
 	g.fillRect (getLocalBounds());
 
-	g.setColour(Colours::blueviolet);
+	g.setColour(juce::Colour(Colours::snow).withAlpha(0.5f));
 	g.setFont(juce::Font("Palatino", 14.f, Font::plain));
 	juce::String displayString ("nvssynthesis csg version ");
 	displayString.append(ProjectInfo::versionString, 9);
@@ -277,6 +277,7 @@ void CsgAudioProcessorEditor::paint (Graphics& g)
 
 	g.setColour (findColour (juce::GroupComponent::outlineColourId));
 	
+	g.setColour(juce::Colour(juce::Colours::snow).withAlpha(0.2f));
 	for (auto& area : groupAreas){
 		g.drawRect (area.toNearestInt(), 1);  // 1px thick
 	}
@@ -331,7 +332,7 @@ void CsgAudioProcessorEditor::resized()
 		// slice groups proportionally
 		for (size_t i = 0; i < groups.size(); ++i) {
 			auto& groupName = groups[i];
-			float  w         = weights[i];
+			float w = weights[i];
 
 			// carve off the proportional slice
 			float sliceW   = rowArea.getWidth() * (w / totalWeight);
@@ -340,11 +341,10 @@ void CsgAudioProcessorEditor::resized()
 			// remember for border‑drawing
 			groupAreas.push_back (groupArea);
 
-			// ---- now compute a skinnyWidth based on this slice ----
+			// compute a skinnyWidth based on this slice
 			const float typeWidthRatio = 0.17f;
 			const float skinnyWidth    = groupArea.getWidth() * typeWidthRatio;
 
-			// 3) build the group’s FlexBox
 			juce::FlexBox flex;
 			flex.flexDirection  = juce::FlexBox::Direction::row;
 			flex.justifyContent = juce::FlexBox::JustifyContent::flexStart;

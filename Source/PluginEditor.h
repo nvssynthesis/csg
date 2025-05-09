@@ -100,7 +100,6 @@ public:
 			return Line(Point(x1, y1), Point(x2, y2));
 		};
 		drawPieSegment(g, ellipseRect, angle, notchWidthDegrees * 1.618f, sliderPosProportional, juce::Colours::black);
-//		drawPieSegment(g, ellipseRect, angle, notchWidthDegrees, 		sliderPosProportional, getCurrentColourScheme().getUIColour(ColourScheme::UIColour::defaultFill));
 	}
 	
 private:

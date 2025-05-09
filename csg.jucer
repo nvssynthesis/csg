@@ -5,7 +5,7 @@
               pluginName="CSG" pluginDesc="Curl and Skew Generator" displaySplashScreen="1"
               jucerFormatVersion="1" headerPath="../../nvs_libraries&#10;../../Sprout"
               cppLanguageStandard="20" pluginFormats="buildAU,buildStandalone,buildVST3"
-              pluginManufacturerCode="Nvss" pluginCode="Csgs" pluginChannelConfigs="{1, 1}, {2, 2}"
+              pluginManufacturerCode="Nvss" pluginCode="Csgs" pluginChannelConfigs="{2, 2}"
               version="0.3.0">
   <MAINGROUP id="eGLGw9" name="csg">
     <GROUP id="{69A94108-40CB-F911-8559-A14C4205D062}" name="Source">
