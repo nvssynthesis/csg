@@ -18,11 +18,10 @@ class NotchLookAndFeel  : public juce::LookAndFeel_V4
 public:
 	NotchLookAndFeel()
 	{
-		setColour (juce::Slider::rotarySliderOutlineColourId, juce::Colours::darkgrey);
-		setColour (juce::Slider::thumbColourId, juce::Colours::white); // not used
 		auto scheme = getDarkColourScheme();
 		scheme.setUIColour(ColourScheme::UIColour::defaultFill, notchColour);
 		setColourScheme(scheme);
+		setColour (juce::Slider::rotarySliderOutlineColourId, juce::Colour(juce::Colours::lightgrey).withAlpha(0.4f));
 	}
 	void drawLinearSlider (Graphics& g,
 						   int x, int y, int width, int height,
@@ -58,7 +57,7 @@ public:
 		p.addPieSegment(ellipseRect.reduced(1.f), angle - juce::degreesToRadians(notchWidth), angle + juce::degreesToRadians(notchWidth), 0.f);
 
 		if (sliderPosProportional == 0.0f){
-			notchCol = notchCol.withAlpha(0.5f);
+			notchCol = notchCol.withAlpha(0.4f);
 		}
 		g.setColour(notchCol);
 		g.fillPath (p);
@@ -81,7 +80,7 @@ public:
 										   radius * 2.0f,
 										   radius * 2.0f);
 		g.drawEllipse (ellipseRect,
-					   2.0f);
+					   2.1f);
 
 		const float angle = rotaryStartAngle + sliderPosProportional * (rotaryEndAngle - rotaryStartAngle);
 
@@ -101,7 +100,7 @@ public:
 			return Line(Point(x1, y1), Point(x2, y2));
 		};
 		drawPieSegment(g, ellipseRect, angle, notchWidthDegrees * 1.618f, sliderPosProportional, juce::Colours::black);
-		drawPieSegment(g, ellipseRect, angle, notchWidthDegrees, 		sliderPosProportional, getCurrentColourScheme().getUIColour(ColourScheme::UIColour::defaultFill));
+//		drawPieSegment(g, ellipseRect, angle, notchWidthDegrees, 		sliderPosProportional, getCurrentColourScheme().getUIColour(ColourScheme::UIColour::defaultFill));
 	}
 	
 private:

@@ -200,7 +200,7 @@ auto makeFrequencyNormRange = [](float f_low=20.f, float f_high=20000.f) -> Norm
 };
 auto makeTimingNormRange = []() -> NormRangeF {
 	auto range = NormRangeF(0.01f, 10000.f);
-	range.setSkewForCentre(1.0f);
+	range.setSkewForCentre(100.0f);
 	return range;
 };
 auto makeBitsRange = []() -> NormRangeF { return NormRangeF(0.01f, 1024.f,
@@ -259,8 +259,8 @@ struct Params {
 	AudioProcessorValueTreeState apvts;
 	
 private:
-	static std::unique_ptr<API> makeFilterTypesParameter(juce::String pid_str, juce::String param_str) {
-		return std::make_unique<API>( JPID{ pid_str, 1 }, param_str, 0, 3, 0,
+	static std::unique_ptr<API> makeFilterTypesParameter(PID_e pid) {
+		return std::make_unique<API>( JPID{ paramToID(pid), 1 }, paramToName(pid), 0, 3, 0,
 									 juce::AudioParameterIntAttributes()
 									 .withStringFromValueFunction([](int value, int maximumStringLength) {	// stringFromInt
 										 switch (value) {
@@ -286,27 +286,56 @@ private:
 									 .withAutomatable(true)
 									 );
 	}
-	static std::unique_ptr<APF> makeLFOWaveParameter(juce::String pid_str, juce::String param_str) {
+	static std::unique_ptr<APF> makeFrequencyParameter(PID_e pid, float min_freq=20.f, float max_freq=22000.f, float default_freq=1000.f){
+		return std::make_unique<APF>( JPID{ paramToID(pid), 1 }, paramToName(pid), makeFrequencyNormRange(min_freq, max_freq), default_freq,
+		juce::AudioParameterFloatAttributes()
+			.withStringFromValueFunction([](float value, int maximumStringLength) -> juce::String {	// stringFromFloat
+				if (value >= 1000.f){
+					auto s = juce::String(value / 1000.f, 1);
+					s.append(" kHz", 4);
+					return s;
+				}
+				auto s = juce::String(value, 1);
+				s.append(" Hz", 3);
+				return s;
+			})
+			.withValueFromStringFunction([](const String &text) -> float 	// floatFromString
+			{
+				return text.getFloatValue();
+			}));
+	}
+	static std::unique_ptr<APF> makeTimingParameter(PID_e pid, float default_ms){
+		return std::make_unique<APF>( JPID{ paramToID(pid), 1 }, paramToName(pid), makeTimingNormRange(), default_ms,
+		juce::AudioParameterFloatAttributes()
+			.withStringFromValueFunction([](float value, int maximumStringLength) -> juce::String {	// stringFromFloat
+				if (value >= 1000.f){
+					auto s = juce::String(value / 1000.f, 2);
+					s.append(" s", 4);
+					return s;
+				}
+				int numDec = value <= 0.01 ? 4 : value <= 0.1 ? 3 : 2;
+				auto s = juce::String(value, numDec);
+				s.append(" ms", 3);
+				return s;
+			})
+			.withValueFromStringFunction([](const String &text) -> float 	// floatFromString
+			{
+				return text.getFloatValue();
+			}));
+	}
+	static std::unique_ptr<APF> makeLFOWaveParameter(PID_e pid) {
 //		(const ParameterID &parameterID, const String &parameterName, NormalisableRange< float > normalisableRange, float defaultValue, const AudioParameterFloatAttributes &attributes={})
-		return std::make_unique<APF>( JPID{ pid_str, 1 }, param_str, NormRangeF(0.f, 3.f), 0.f,
+		return std::make_unique<APF>( JPID{ paramToID(pid), 1 }, paramToName(pid), NormRangeF(0.f, 3.f), 0.f,
 									 juce::AudioParameterFloatAttributes()
 									 .withStringFromValueFunction([](float value, int maximumStringLength) -> juce::String {	// stringFromFloat
-										 if (value == int(value)){
-											 switch(int(value))
-											 {
-												 case 0:
-													 return "Sine";
-												 case 1:
-													 return "Saw";
-												 case 2:
-													 return "Square";
-												 case 3:
-													 return "Triangle";
-											 }
-										 }
-										 if (value < 1.0) 		{ return "Sin/Saw"; 	}
-										 else if (value < 2.0) 	{ return "Saw/Square"; 	}
-										 else if (value < 3.0) 	{ return "Square/Tri"; 	}
+										 float thresh = 0.05;
+										 if (value < thresh)					{ return "Sine";		}
+										 else if (value < (1.0 - thresh)) 		{ return "Sin/Saw"; 	}
+										 else if (value < (1.0 + thresh)) 		{ return "Saw"; 		}
+										 else if (value < (2.0 - thresh)) 		{ return "Saw/Square"; 	}
+										 else if (value < (2.0 + thresh)) 		{ return "Square"; 		}
+										 else if (value < (3.0 - thresh))		{ return "Square/Tri"; 	}
+										 else if (value < (3.0 + thresh))		{ return "Triangle"; 	}
 										 return juce::String(value);
 									 })
 									 .withValueFromStringFunction([](const String &text) -> float 	// floatFromString
@@ -327,28 +356,28 @@ private:
 												groupToID(GroupID_e::FM), 	groupToName(GroupID_e::FM), "|",
 												makeAPF(PID_e::SELF_FM, 	makeSelfFMRange(), 0.0f, 5),
 												makeAPF(PID_e::MEMORY,		NormRangeF{1.f, 32.f}, 1.f),
-												makeAPF(PID_e::FM_SMOOTH, 	makeFrequencyNormRange(), 2000.f),
+												makeFrequencyParameter(PID_e::FM_SMOOTH),
 												makeAPF2(PID_e::FM_DEGRADE,	makeBitsRange(), 256.f, bitsValueToString, bitsStringToValue)
 																									  );
 		std::unique_ptr<AudioParameterGroup> PMParameterGroup = std::make_unique<AudioParameterGroup>(
 												groupToID(GroupID_e::PM), 	groupToName(GroupID_e::PM), "|",
 												makeAPF(PID_e::PM_AMOUNT, 	NormRangeF(0.f, 8.f), 0.f ),
-												makeAPF(PID_e::PM_TAME, 	makeFrequencyNormRange(), 2000.f ),
+												makeFrequencyParameter(PID_e::PM_TAME),
 												makeAPF(PID_e::PM_SHAPE, 	NormRangeF(0.f, 1.f), 0.f ),
 												makeAPF2(PID_e::PM_DEGRADE, 	makeBitsRange(), 256.f, bitsValueToString, bitsStringToValue)
 																									  );
 		std::unique_ptr<AudioParameterGroup> filterParameterGroup = std::make_unique<AudioParameterGroup>(
 												groupToID(GroupID_e::FILTER), 	groupToName(GroupID_e::FILTER), "|",
 												makeAPF2(PID_e::DRIVE, 		makeGainRange(-60.f, 12.f), 1.0f, valueToString_dB, dB_stringToValue),
-												makeAPF(PID_e::CUTOFF, 		makeFrequencyNormRange(20.0, 22000.0), 12000.f, 1),
+											    makeFrequencyParameter(PID_e::CUTOFF, 20.f, 22000.f, 12000.f),
 												makeAPF(PID_e::RESO, 	NormRangeF(0.f, 5.f), 1.f ),
-												makeFilterTypesParameter(paramToID(PID_e::TYPE_L), paramToName(PID_e::TYPE_L)),
-												makeFilterTypesParameter(paramToID(PID_e::TYPE_R), paramToName(PID_e::TYPE_R))
+												makeFilterTypesParameter(PID_e::TYPE_L),
+												makeFilterTypesParameter(PID_e::TYPE_R)
 																										  );
 		std::unique_ptr<AudioParameterGroup> LFOParameterGroup = std::make_unique<AudioParameterGroup>(
 												groupToID(GroupID_e::LFO), 	groupToName(GroupID_e::LFO), "|",
-												makeAPF(PID_e::LFO_RATE, 	makeFrequencyNormRange(0.023f, 230.f), 1.f ),
-											    makeLFOWaveParameter(paramToID(PID_e::LFO_WAVE), paramToName(PID_e::LFO_WAVE))
+												makeFrequencyParameter(PID_e::LFO_RATE, 0.023f, 230.f, 1.f),
+											    makeLFOWaveParameter(PID_e::LFO_WAVE)
 																									   );
 		std::unique_ptr<AudioParameterGroup> envelopeParameterGroup = std::make_unique<AudioParameterGroup>(
 												groupToID(GroupID_e::ENVELOPE), 	groupToName(GroupID_e::ENVELOPE), "|",
@@ -356,9 +385,8 @@ private:
 																							[](float start, float end, float normalized) { return std::sqrt(normalized); },
 																							[](float start, float end, float value) { return std::pow(value, 2.f); }
 																						}, 0.f ),
-												makeAPF(PID_e::RISE, 		makeTimingNormRange(), 0.1f ),
-												makeAPF(PID_e::FALL, 		makeTimingNormRange(), 0.1f )
-																											);
+												makeTimingParameter(PID_e::RISE, 10.f),
+												makeTimingParameter(PID_e::FALL, 10.f));
 
 		return std::make_unique<AudioParameterGroup>(
 											groupToID(GroupID_e::MAIN), groupToName(GroupID_e::MAIN), "|",

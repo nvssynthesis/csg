@@ -88,6 +88,7 @@ ModulatedSlider::ModulatedSlider(juce::AudioProcessorValueTreeState &apvts,
 	_modulationSlider.setColour(Slider::ColourIds::textBoxTextColourId, juce::Colours::lightgrey);
 
 	_label.setFont({"Palatino", 13.f, 0});
+	_label.setJustificationType(juce::Justification::centred);
 	_label.attachToComponent(&_baseSlider, false);
 	_label.setColour(juce::Label::textColourId, juce::Colours::lightgrey);
 	_label.setText(_paramName, dontSendNotification);
@@ -103,7 +104,7 @@ void ModulatedSlider::resized()
 	auto area = getLocalBounds().withTrimmedTop(pad).withTrimmedBottom(pad).withTrimmedLeft(1.1*pad).withTrimmedRight(1.1*pad).toFloat();
 
 	float totalH = area.getHeight();
-	float labelH  = totalH * 0.1f;
+	float labelH  = totalH * 0.11f;
 	float baseH   = totalH * 0.64f;
 	float modH   = totalH - labelH - baseH;
 
@@ -231,6 +232,7 @@ CsgAudioProcessorEditor::CsgAudioProcessorEditor (CsgAudioProcessor& p)
 	addAndMakeVisible(visitSiteButton);
 	visitSiteButton.setColour (juce::HyperlinkButton::textColourId, juce::Colour(Colours::deepskyblue).withMultipliedLightness(0.7));
 	visitSiteButton.setFont(Font("Palatino", 14.f, Font::plain), false);
+	visitSiteButton.setJustificationType(Justification::bottomLeft);
 
 	backgroundImage = ImageCache::getFromMemory (BinaryData::enclosure480_1_png,
 												 BinaryData::enclosure480_1_pngSize);
@@ -262,11 +264,17 @@ void CsgAudioProcessorEditor::paint (Graphics& g)
 	g.setColour (Colours::black.withAlpha (0.3f));
 	g.fillRect (getLocalBounds());
 
+	g.setColour(Colours::blueviolet);
+	g.setFont(juce::Font("Palatino", 14.f, Font::plain));
+	juce::String displayString ("nvssynthesis csg version ");
+	displayString.append(ProjectInfo::versionString, 9);
+	auto x_offset = 300;
 #ifdef JUCE_DEBUG
-	g.setColour(Colours::white);
-	g.drawText("debug", 1, 1, 100, 10, Justification::topLeft);
+	displayString.append(" debug mode", 14);
+	x_offset += 30;	// display must starter further left
 #endif
-	
+	g.drawText(displayString, getWidth() - x_offset - 20, getHeight() - 40, x_offset, 40, Justification::bottomRight);
+
 	g.setColour (findColour (juce::GroupComponent::outlineColourId));
 	
 	for (auto& area : groupAreas){
