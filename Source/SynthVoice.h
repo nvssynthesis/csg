@@ -47,7 +47,7 @@ private:
 	nvs::param::SmoothedParamsManager *_smoothedParams;
 	
 	nvs::csg::CSG unit;
-	nvssynthesis_lfo::simple_lfo<float> lfo;
+	nvs::lfo::simple_lfo<float> lfo;
 	nvs::filters::svf_nl_rk<float> svf;
 	nvs::filters::slewlim<float> env;
 	

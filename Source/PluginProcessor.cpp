@@ -12,6 +12,15 @@
 #include "PluginEditor.h"
 
 //==========================================================================
+void initAPVTS(juce::AudioProcessorValueTreeState &apvts){
+	if (!apvts.state.hasProperty("version")){
+		apvts.state.setProperty("version", ProjectInfo::versionString, nullptr);
+	}
+	if (!apvts.state.hasProperty(nvs::service::PresetManager::presetNameProperty)){
+		apvts.state.setProperty(nvs::service::PresetManager::presetNameProperty, "", nullptr);
+	}
+}
+
 CsgAudioProcessor::CsgAudioProcessor() :
 #ifndef JucePlugin_PreferredChannelConfigurations
      AudioProcessor (BusesProperties()
@@ -27,6 +36,10 @@ CsgAudioProcessor::CsgAudioProcessor() :
 params(*this),
 smoothedParams(params.apvts)
 {
+	initAPVTS(params.apvts);
+	
+	presetManager = std::make_unique<nvs::service::PresetManager>(params.apvts);	// need to pass fully initialized apvts
+
 	using namespace nvs::csg;
 	csgSynth.setCurrentPlaybackSampleRate(44100.f);
     csgSynth.clearVoices();
@@ -184,9 +197,10 @@ void CsgAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
 	if (xml != nullptr)
 	{
 		juce::ValueTree stateTree = juce::ValueTree::fromXml(*xml);
-		
+				
 		if (stateTree.isValid())
 			params.apvts.replaceState(stateTree);
+			initAPVTS(params.apvts);
 	}
 }
 

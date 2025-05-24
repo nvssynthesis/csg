@@ -6,9 +6,16 @@
               jucerFormatVersion="1" headerPath="../../nvs_libraries&#10;../../Sprout"
               cppLanguageStandard="20" pluginFormats="buildAU,buildStandalone,buildVST3"
               pluginManufacturerCode="Nvss" pluginCode="Csgs" pluginChannelConfigs="{2, 2}"
-              version="0.3.0">
+              version="0.3.1">
   <MAINGROUP id="eGLGw9" name="csg">
     <GROUP id="{69A94108-40CB-F911-8559-A14C4205D062}" name="Source">
+      <GROUP id="{006C947C-D3FB-CF24-893A-B6F59EBCD901}" name="Synth">
+        <FILE id="qq2pvv" name="CSG_dsp.cpp" compile="1" resource="0" file="Source/CSG_dsp.cpp"/>
+        <FILE id="s3nrdj" name="CSG_dsp.h" compile="0" resource="0" file="Source/CSG_dsp.h"/>
+        <FILE id="mTeQj4" name="SynthSound.h" compile="0" resource="0" file="Source/SynthSound.h"/>
+        <FILE id="LZ4nIJ" name="SynthVoice.h" compile="0" resource="0" file="Source/SynthVoice.h"/>
+        <FILE id="cYgFCG" name="SynthVoice.cpp" compile="1" resource="0" file="Source/SynthVoice.cpp"/>
+      </GROUP>
       <GROUP id="{D5509354-C77A-5E73-CEED-481B879D73D7}" name="nvs_libraries">
         <FILE id="QkVLdZ" name="nvs_delayFilters.h" compile="0" resource="0"
               file="nvs_libraries/nvs_libraries/include/nvs_delayFilters.h"/>
@@ -17,19 +24,23 @@
         <FILE id="osCyEU" name="nvs_memoryless.h" compile="0" resource="0"
               file="nvs_libraries/nvs_libraries/include/nvs_memoryless.h"/>
       </GROUP>
-      <FILE id="qq2pvv" name="CSG_dsp.cpp" compile="1" resource="0" file="Source/CSG_dsp.cpp"/>
-      <FILE id="s3nrdj" name="CSG_dsp.h" compile="0" resource="0" file="Source/CSG_dsp.h"/>
+      <GROUP id="{F3B69ADC-16F1-AA72-19FF-E161D2512FCB}" name="Service">
+        <FILE id="H23Ckb" name="PresetManager.cpp" compile="1" resource="0"
+              file="Source/PresetManager.cpp"/>
+        <FILE id="BllyNC" name="PresetManager.h" compile="0" resource="0" file="Source/PresetManager.h"/>
+      </GROUP>
+      <GROUP id="{F9A44652-2BAA-AF85-44CC-E05DC777A40F}" name="GUI">
+        <FILE id="NUazu7" name="PresetPanel.cpp" compile="1" resource="0" file="Source/PresetPanel.cpp"/>
+        <FILE id="btSxuX" name="PresetPanel.h" compile="0" resource="0" file="Source/PresetPanel.h"/>
+      </GROUP>
       <FILE id="CjkzIq" name="params.h" compile="0" resource="0" file="Source/params.h"/>
       <FILE id="yMFcXN" name="PluginEditor.cpp" compile="1" resource="0"
             file="Source/PluginEditor.cpp"/>
+      <FILE id="vWWr5D" name="PluginEditor.h" compile="0" resource="0" file="Source/PluginEditor.h"/>
       <FILE id="e3GBZm" name="PluginProcessor.cpp" compile="1" resource="0"
             file="Source/PluginProcessor.cpp"/>
       <FILE id="k1ees9" name="PluginProcessor.h" compile="0" resource="0"
             file="Source/PluginProcessor.h"/>
-      <FILE id="mTeQj4" name="SynthSound.h" compile="0" resource="0" file="Source/SynthSound.h"/>
-      <FILE id="vWWr5D" name="PluginEditor.h" compile="0" resource="0" file="Source/PluginEditor.h"/>
-      <FILE id="LZ4nIJ" name="SynthVoice.h" compile="0" resource="0" file="Source/SynthVoice.h"/>
-      <FILE id="cYgFCG" name="SynthVoice.cpp" compile="1" resource="0" file="Source/SynthVoice.cpp"/>
     </GROUP>
     <GROUP id="{F2CC6C70-0D53-3516-2FFC-DB0764CE9A99}" name="Resources">
       <FILE id="FZgdc3" name="enclosure480.1.png" compile="0" resource="1"
@@ -38,7 +49,7 @@
   </MAINGROUP>
   <EXPORTFORMATS>
     <XCODE_MAC targetFolder="Builds/MacOSX" extraDefs="_LIBCPP_ENABLE_CXX20_REMOVED_TYPE_TRAITS&#10;H_ONLY"
-               xcodeValidArchs="arm64">
+               xcodeValidArchs="arm64,x86_64">
       <CONFIGURATIONS>
         <CONFIGURATION isDebug="1" name="Debug" macOSDeploymentTarget="13.0" osxCompatibility="13.0 SDK"/>
         <CONFIGURATION isDebug="0" name="Release"/>
@@ -61,52 +72,6 @@
         <MODULEPATH id="juce_video" path="../../../../../Applications/JUCE/modules"/>
       </MODULEPATHS>
     </XCODE_MAC>
-    <VS2019 targetFolder="Builds/VisualStudio2019" extraDefs="_LIBCPP_ENABLE_CXX20_REMOVED_TYPE_TRAITS">
-      <CONFIGURATIONS>
-        <CONFIGURATION isDebug="1" name="Debug"/>
-        <CONFIGURATION isDebug="0" name="Release"/>
-      </CONFIGURATIONS>
-      <MODULEPATHS>
-        <MODULEPATH id="juce_audio_basics" path="../../../../../Applications/JUCE/modules"/>
-        <MODULEPATH id="juce_audio_devices" path="../../../../../Applications/JUCE/modules"/>
-        <MODULEPATH id="juce_audio_formats" path="../../../../../Applications/JUCE/modules"/>
-        <MODULEPATH id="juce_audio_plugin_client" path="../../../../../Applications/JUCE/modules"/>
-        <MODULEPATH id="juce_audio_processors" path="../../../../../Applications/JUCE/modules"/>
-        <MODULEPATH id="juce_audio_utils" path="../../../../../Applications/JUCE/modules"/>
-        <MODULEPATH id="juce_core" path="../../../../../Applications/JUCE/modules"/>
-        <MODULEPATH id="juce_cryptography" path="../../../../../Applications/JUCE/modules"/>
-        <MODULEPATH id="juce_data_structures" path="../../../../../Applications/JUCE/modules"/>
-        <MODULEPATH id="juce_events" path="../../../../../Applications/JUCE/modules"/>
-        <MODULEPATH id="juce_graphics" path="../../../../../Applications/JUCE/modules"/>
-        <MODULEPATH id="juce_gui_basics" path="../../../../../Applications/JUCE/modules"/>
-        <MODULEPATH id="juce_gui_extra" path="../../../../../Applications/JUCE/modules"/>
-        <MODULEPATH id="juce_opengl" path="../../../../../Applications/JUCE/modules"/>
-        <MODULEPATH id="juce_video" path="../../../../../Applications/JUCE/modules"/>
-      </MODULEPATHS>
-    </VS2019>
-    <VS2017 targetFolder="Builds/VisualStudio2017" extraDefs="_LIBCPP_ENABLE_CXX20_REMOVED_TYPE_TRAITS">
-      <CONFIGURATIONS>
-        <CONFIGURATION isDebug="1" name="Debug"/>
-        <CONFIGURATION isDebug="0" name="Release"/>
-      </CONFIGURATIONS>
-      <MODULEPATHS>
-        <MODULEPATH id="juce_audio_basics" path="../../../../../Applications/JUCE/modules"/>
-        <MODULEPATH id="juce_audio_devices" path="../../../../../Applications/JUCE/modules"/>
-        <MODULEPATH id="juce_audio_formats" path="../../../../../Applications/JUCE/modules"/>
-        <MODULEPATH id="juce_audio_plugin_client" path="../../../../../Applications/JUCE/modules"/>
-        <MODULEPATH id="juce_audio_processors" path="../../../../../Applications/JUCE/modules"/>
-        <MODULEPATH id="juce_audio_utils" path="../../../../../Applications/JUCE/modules"/>
-        <MODULEPATH id="juce_core" path="../../../../../Applications/JUCE/modules"/>
-        <MODULEPATH id="juce_cryptography" path="../../../../../Applications/JUCE/modules"/>
-        <MODULEPATH id="juce_data_structures" path="../../../../../Applications/JUCE/modules"/>
-        <MODULEPATH id="juce_events" path="../../../../../Applications/JUCE/modules"/>
-        <MODULEPATH id="juce_graphics" path="../../../../../Applications/JUCE/modules"/>
-        <MODULEPATH id="juce_gui_basics" path="../../../../../Applications/JUCE/modules"/>
-        <MODULEPATH id="juce_gui_extra" path="../../../../../Applications/JUCE/modules"/>
-        <MODULEPATH id="juce_opengl" path="../../../../../Applications/JUCE/modules"/>
-        <MODULEPATH id="juce_video" path="../../../../../Applications/JUCE/modules"/>
-      </MODULEPATHS>
-    </VS2017>
   </EXPORTFORMATS>
   <MODULES>
     <MODULE id="juce_audio_basics" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>

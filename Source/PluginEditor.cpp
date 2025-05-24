@@ -166,6 +166,7 @@ void AttachedComboBox::resized() {
 CsgAudioProcessorEditor::CsgAudioProcessorEditor (CsgAudioProcessor& p)
 : 	AudioProcessorEditor (&p), processor (p)
 ,	tooltipWindow (this, 500)      // hover‐delay = 500 ms
+,	presetPanel(processor.getPresetManager())
 {
 	juce::AudioProcessorValueTreeState &apvts = processor.getAPVTS();
 	
@@ -229,6 +230,7 @@ CsgAudioProcessorEditor::CsgAudioProcessorEditor (CsgAudioProcessor& p)
 	for (auto & cb : comboBoxes){
 		addAndMakeVisible(cb.get());
 	}
+	addAndMakeVisible(presetPanel);
 	addAndMakeVisible(visitSiteButton);
 	visitSiteButton.setColour (juce::HyperlinkButton::textColourId, juce::Colour(Colours::deepskyblue).withAlpha(0.7f));
 	visitSiteButton.setFont(Font("Palatino", 14.f, Font::plain), false);
@@ -296,6 +298,10 @@ void CsgAudioProcessorEditor::resized()
 		int const cbPad = 16;
 		comboBoxes[0]->setBounds(knobs[0]->getX() - (cbWidth + cbPad), 0 + cbPad, cbWidth, topPad - 2*cbPad);
 	}
+	
+
+		
+	
 	// clear out last frame’s group‑areas
 	groupAreas.clear();
 
@@ -306,7 +312,19 @@ void CsgAudioProcessorEditor::resized()
 					.withTrimmedBottom(pad * 7)
 					.withTrimmedTop   (topPad)
 					.toFloat();
-
+	{
+//		auto presetPanelBounds = getLocalBounds()
+//			.withTrimmedLeft(pad)
+//			.withTrimmedRight(pad*6 + knobs[0]->getWidth() + comboBoxes[0]->getWidth())
+//			.withTrimmedTop(pad)
+//			.withTrimmedBottom(pad*10 + area.getHeight());
+		auto const cbb = comboBoxes[0]->getBounds();
+		auto presetPanelBounds = cbb
+			.withLeft(pad)
+			.withRight(cbb.getX());
+		presetPanel.setBounds(presetPanelBounds);
+	}
+	
 	// split into equal‐height rows
 	const float rowHeight = area.getHeight() * 0.5f;
 	auto topArea = area.removeFromTop(rowHeight);

@@ -12,6 +12,7 @@
 
 #include "../JuceLibraryCode/JuceHeader.h"
 #include "PluginProcessor.h"
+#include "PresetPanel.h"
 
 class NotchLookAndFeel  : public juce::LookAndFeel_V4
 {
@@ -181,6 +182,7 @@ private:
     CsgAudioProcessor& processor;
 	TooltipWindow  tooltipWindow;
 	NotchLookAndFeel notchLAF;
+	nvs::gui::PresetPanel presetPanel;
 	juce::HyperlinkButton   visitSiteButton { "info & donate @ nvssynthesis",
 								   URL ("https://nvssynthesis.github.io/") };
 	

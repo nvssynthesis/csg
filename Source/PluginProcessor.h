@@ -14,6 +14,7 @@
 #include "SynthSound.h"
 #include "SynthVoice.h"
 #include "params.h"
+#include "PresetManager.h"
 
 //==============================================================================
 
@@ -59,11 +60,16 @@ public:
 	
 	[[deprecated]] juce::AudioProcessorValueTreeState &getAPVTS();
 
+	nvs::service::PresetManager &getPresetManager() {
+		return *presetManager;
+	}
 private:
     Synthesiser csgSynth;
 	nvs::param::Params params;
 	nvs::param::SmoothedParamsManager smoothedParams;
-    
+
+	//==============================================================================
+	std::unique_ptr<nvs::service::PresetManager> presetManager;
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (CsgAudioProcessor)
 };
