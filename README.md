@@ -1,4 +1,5 @@
-The Curl and Skew Generator (CSG) is a monophonic harsh noise synthesizer developed in JUCE. It consists of a single oscillator (phasor) which affects itself by feedback-based frequency- and phase- modulation. This oscillator then gets routed to an extremely roudy state-variable filter.
+The Curl and Skew Generator (CSG) is a monophonic harsh noise synthesizer developed in JUCE. It consists of a single chaotic oscillator which affects itself by feedback-based frequency- and phase- modulation. This oscillator then gets routed to an extremely roudy state-variable filter.
+<br>
 CSG has 5 sections: FM, PM, VCF, LFO, and 2-stage envelope.
 Some reasons it sounds so insane: <br>
 -FM feedback is passed through a variable delay buffer (MEMORY) <br>
@@ -11,3 +12,5 @@ Current limitations: <br>
 -Single 2-stage (RISE/FALL) envelope, only affects amplitude <br>
 
 CSG was [presented](https://www.youtube.com/watch?v=okdVPLvdnEc) at the Heretical Sound Synthesis in Helsinki. <br>
+
+![Alt text](csg.png "csg standalone")
