@@ -36,6 +36,7 @@ public:
 	void drawComboBox (juce::Graphics& g, int width, int height, bool isButtonDown,
 					   int buttonX, int buttonY, int buttonW, int buttonH, ComboBox& cb) override;
 	Font getComboBoxFont (ComboBox& /*cb*/) override;
+	Font getTextButtonFont (TextButton&, int buttonHeight) override;
 	
 	Font getPopupMenuFont() override;
 	void drawPopupMenuBackground (Graphics& g, int width, int height) override;

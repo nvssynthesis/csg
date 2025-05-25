@@ -63,7 +63,9 @@ void CSG_LookAndFeel::drawComboBox (juce::Graphics& g, int width, int height, bo
 												arrowW, arrowH,
 												true));
 }
-
+Font CSG_LookAndFeel::getTextButtonFont(TextButton&, int buttonHeight) {
+	return Font("Palatino", 13.0, Font::plain);
+}
 Font CSG_LookAndFeel::getComboBoxFont (ComboBox&) {
 	return getPopupMenuFont();// use same font as its popup menu
 }
@@ -104,7 +106,7 @@ void CSG_LookAndFeel::drawButtonText (Graphics& g, TextButton& b,
 									  bool /*isMouseOverButton*/, bool /*isButtonDown*/)
 {
 	auto fontSize = jmin (16.0f, b.getHeight() * 0.6f);
-	g.setFont ({ fontSize, Font::bold });
+	g.setFont (getTextButtonFont(b, b.getHeight()));
 	g.setColour (b.getToggleState()
 				 ? findColour (TextButton::textColourOnId)
 				 : findColour (TextButton::textColourOffId));
