@@ -63,16 +63,35 @@ public:
 		addAndMakeVisible(b);
 		b.addListener(this);
 	}
-	
-	void resized() override {
-		const auto container  = getLocalBounds();
-		auto bounds = container;
-		
-		saveButton.setBounds(bounds.removeFromLeft(container.proportionOfWidth(0.2f)).reduced(1));
-		previousPresetButton.setBounds(bounds.removeFromLeft(container.proportionOfWidth(0.1f)).reduced(1));
-		presetListBox.setBounds(bounds.removeFromLeft(container.proportionOfWidth(0.4f)).reduced(1));
-		nextPresetButton.setBounds(bounds.removeFromLeft(container.proportionOfWidth(0.1f)).reduced(1));
-		deleteButton.setBounds(bounds.reduced(1));
+	void paint(juce::Graphics &g) override {
+		auto const p0 = Point<float>(getX(), getY());
+		auto const p1 = p0 + Point<float>(getWidth(), getHeight());
+		g.setGradientFill(ColourGradient(Colour(Colours::lightgrey).withMultipliedAlpha(0.15f), p0,
+										 Colour(Colours::darkgrey).withMultipliedAlpha(0.85f), p1, false));
+		g.fillRect(getLocalBounds());
+	}
+	void resized() override
+	{
+		auto area = getLocalBounds().toFloat();
+
+		// set up flex container
+		FlexBox fb;
+		fb.flexDirection = FlexBox::Direction::row;
+		fb.alignItems    = FlexBox::AlignItems::stretch;
+		fb.alignContent  = FlexBox::AlignContent::spaceAround;
+
+		float margin = 4.0f;
+		// add your controls with the same relative widths and 1px margin
+		fb.items = {
+			FlexItem (saveButton)               .withFlex (0.08f).withMargin (margin),
+			FlexItem (previousPresetButton)     .withFlex (0.03f).withMargin (margin),
+			FlexItem (presetListBox)            .withFlex (0.6f).withMargin (margin),
+			FlexItem (nextPresetButton)         .withFlex (0.03f).withMargin (margin),
+			FlexItem (deleteButton)             .withFlex (0.08f).withMargin (margin)
+		};
+
+		// perform the layout in our component's bounds
+		fb.performLayout (area);
 	}
 	
 private:

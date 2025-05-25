@@ -183,6 +183,7 @@ private:
 	TooltipWindow  tooltipWindow;
 	NotchLookAndFeel notchLAF;
 	nvs::gui::PresetPanel presetPanel;
+	juce::Rectangle<int> nameAndVersionBounds;
 	juce::HyperlinkButton   visitSiteButton { "info & donate @ nvssynthesis",
 								   URL ("https://nvssynthesis.github.io/") };
 	

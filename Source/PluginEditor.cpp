@@ -270,12 +270,10 @@ void CsgAudioProcessorEditor::paint (Graphics& g)
 	g.setFont(juce::Font("Palatino", 14.f, Font::plain));
 	juce::String displayString ("nvssynthesis csg version ");
 	displayString.append(ProjectInfo::versionString, 9);
-	auto x_offset = 300;
 #ifdef JUCE_DEBUG
 	displayString.append(" debug mode", 14);
-	x_offset += 30;	// display must starter further left
 #endif
-	g.drawText(displayString, getWidth() - x_offset - 20, getHeight() - 40, x_offset, 40, Justification::bottomRight);
+	g.drawText(displayString, nameAndVersionBounds, Justification::bottomRight);
 
 	g.setColour (findColour (juce::GroupComponent::outlineColourId));
 	
@@ -287,120 +285,126 @@ void CsgAudioProcessorEditor::paint (Graphics& g)
 
 void CsgAudioProcessorEditor::resized()
 {
-
 	const auto topPad = 53;
 	const int  pad    = 3;
 	{	// place output gain knob
 		knobs[0]->setBounds(getWidth() - topPad, 0, topPad, topPad);
 	}
-	{	// place oversampling combo box
-		int const cbWidth = 80;
-		int const cbPad = 16;
-		comboBoxes[0]->setBounds(knobs[0]->getX() - (cbWidth + cbPad), 0 + cbPad, cbWidth, topPad - 2*cbPad);
-	}
-	
-
-		
 	
 	// clear out last frame’s group‑areas
 	groupAreas.clear();
-
-	// carve off overall padding
-	auto area = getLocalBounds()
+	auto const area = getLocalBounds()
 					.withTrimmedLeft  (pad)
 					.withTrimmedRight (pad)
-					.withTrimmedBottom(pad * 7)
-					.withTrimmedTop   (topPad)
+					.withTrimmedBottom(pad)
+					.withTrimmedTop   (pad)
 					.toFloat();
+	
 	{
-//		auto presetPanelBounds = getLocalBounds()
-//			.withTrimmedLeft(pad)
-//			.withTrimmedRight(pad*6 + knobs[0]->getWidth() + comboBoxes[0]->getWidth())
-//			.withTrimmedTop(pad)
-//			.withTrimmedBottom(pad*10 + area.getHeight());
-		auto const cbb = comboBoxes[0]->getBounds();
-		auto presetPanelBounds = cbb
-			.withLeft(pad)
-			.withRight(cbb.getX());
+		auto presetPanelBounds = area.withHeight((topPad * 0.6) - pad).withRight(knobs[0]->getBounds().getX() - pad).toNearestInt();
 		presetPanel.setBounds(presetPanelBounds);
 	}
 	
-	// split into equal‐height rows
-	const float rowHeight = area.getHeight() * 0.5f;
-	auto topArea = area.removeFromTop(rowHeight);
-	auto bottomArea = area;
+	// carve off overall padding
+	auto const paramsArea = area.withTrimmedTop(topPad).withTrimmedBottom(pad * 8);
+	{
+		// split into equal‐height rows
+		const float rowHeight = paramsArea.getHeight() * 0.5f;
+		
+		auto bottomArea = paramsArea;
+		auto topArea = bottomArea.removeFromTop(rowHeight);	// returns the section that was removed!
 
-	// define rows by group substring
-	const std::vector<juce::String> topGroups    { "FM",     "PM"        };
-	const std::vector<juce::String> bottomGroups { "FILTER", "LFO", "ENV" };
+		// define rows by group substring
+		const std::vector<juce::String> topGroups    { "FM",     "PM"        };
+		const std::vector<juce::String> bottomGroups { "FILTER", "LFO", "ENV" };
 
-	auto layoutRow = [&](juce::Rectangle<float> rowArea,
-						 const std::vector<juce::String>& groups) {
-		// weights per param group
-		std::vector<float> weights;
-		for (auto& groupName : groups) {
-			if      (groupName == "FILTER") weights.push_back (1.2f);
-			else if (groupName == "ENV")    weights.push_back (1.0f);
-			else if (groupName == "LFO")    weights.push_back (0.7f);
-			else                            weights.push_back (1.0f);
-		}
-
-		float totalWeight = std::accumulate (weights.begin(), weights.end(), 0.0f);
-
-		// slice groups proportionally
-		for (size_t i = 0; i < groups.size(); ++i) {
-			auto& groupName = groups[i];
-			float w = weights[i];
-
-			// carve off the proportional slice
-			float sliceW   = rowArea.getWidth() * (w / totalWeight);
-			auto  groupArea = rowArea.removeFromLeft (sliceW);
-
-			// remember for border‑drawing
-			groupAreas.push_back (groupArea);
-
-			// compute a skinnyWidth based on this slice
-			const float typeWidthRatio = 0.17f;
-			const float skinnyWidth    = groupArea.getWidth() * typeWidthRatio;
-
-			juce::FlexBox flex;
-			flex.flexDirection  = juce::FlexBox::Direction::row;
-			flex.justifyContent = juce::FlexBox::JustifyContent::flexStart;
-			flex.alignItems     = juce::FlexBox::AlignItems::stretch;
-			flex.flexWrap       = juce::FlexBox::Wrap::noWrap;
-
-			// collect sliders in this group
-			std::vector<ModulatedSlider*> groupSliders;
-			for (auto& s : sliders) {
-				if (s->getParamGroupName().contains (groupName)) {
-					groupSliders.push_back (s.get());
-				}
-			}
-			// add them, using the proportional skinnyWidth for TYPE
-			for (auto* slider : groupSliders) {
-				if (slider->getParamName().contains ("TYPE")) {	// filter type selector slider
-					flex.items.add ( juce::FlexItem (*slider)
-										 .withFlex     (0, 0)
-										 .withMinWidth (skinnyWidth)
-										 .withMaxWidth (skinnyWidth) );
-				}
-				else {
-					flex.items.add ( juce::FlexItem (*slider)
-										 .withFlex (1.0f, 1.0f) );
-				}
+		auto layoutRow = [&](juce::Rectangle<float> rowArea,
+							 const std::vector<juce::String>& groups) {
+			// weights per param group
+			std::vector<float> weights;
+			for (auto& groupName : groups) {
+				if      (groupName == "FILTER") weights.push_back (1.2f);
+				else if (groupName == "ENV")    weights.push_back (1.0f);
+				else if (groupName == "LFO")    weights.push_back (0.7f);
+				else                            weights.push_back (1.0f);
 			}
 
-			// subtract current group’s weight so the next slice is still proportional
-			totalWeight -= w;
+			float totalWeight = std::accumulate (weights.begin(), weights.end(), 0.0f);
 
-			flex.performLayout (groupArea);
-		}
-	};
+			// slice groups proportionally
+			for (size_t i = 0; i < groups.size(); ++i) {
+				auto& groupName = groups[i];
+				float w = weights[i];
 
-	layoutRow (topArea,    topGroups);
-	layoutRow (bottomArea, bottomGroups);
+				// carve off the proportional slice
+				float sliceW   = rowArea.getWidth() * (w / totalWeight);
+				auto  groupArea = rowArea.removeFromLeft (sliceW);
+
+				// remember for border‑drawing
+				groupAreas.push_back (groupArea);
+
+				// compute a skinnyWidth based on this slice
+				const float typeWidthRatio = 0.17f;
+				const float skinnyWidth    = groupArea.getWidth() * typeWidthRatio;
+
+				juce::FlexBox flex;
+				flex.flexDirection  = juce::FlexBox::Direction::row;
+				flex.justifyContent = juce::FlexBox::JustifyContent::flexStart;
+				flex.alignItems     = juce::FlexBox::AlignItems::stretch;
+				flex.flexWrap       = juce::FlexBox::Wrap::noWrap;
+
+				// collect sliders in this group
+				std::vector<ModulatedSlider*> groupSliders;
+				for (auto& s : sliders) {
+					if (s->getParamGroupName().contains (groupName)) {
+						groupSliders.push_back (s.get());
+					}
+				}
+				// add them, using the proportional skinnyWidth for TYPE
+				for (auto* slider : groupSliders) {
+					if (slider->getParamName().contains ("TYPE")) {	// filter type selector slider
+						flex.items.add ( juce::FlexItem (*slider)
+											 .withFlex     (0, 0)
+											 .withMinWidth (skinnyWidth)
+											 .withMaxWidth (skinnyWidth) );
+					}
+					else {
+						flex.items.add ( juce::FlexItem (*slider)
+											 .withFlex (1.0f, 1.0f) );
+					}
+				}
+
+				// subtract current group’s weight so the next slice is still proportional
+				totalWeight -= w;
+
+				flex.performLayout (groupArea);
+			}
+		};
+
+		layoutRow (topArea,    topGroups);
+		layoutRow (bottomArea, bottomGroups);
+	}
 	
-	visitSiteButton.setBounds (pad, getHeight() - pad * 5,
-							   178, pad * 5);
+	auto const subArea = area.withTrimmedTop(paramsArea.getHeight() + 2*pad + topPad);
+	
+	visitSiteButton.setBounds (subArea.getX(), subArea.getY(),
+							   178, subArea.getHeight());
+	visitSiteButton.setCentrePosition(visitSiteButton.getBounds().getCentreX(), subArea.getCentreY());
+	auto const x_offset =
+#ifdef JUCE_DEBUG
+	330;
+#else
+	30;
+#endif
+	nameAndVersionBounds = juce::Rectangle<int>(subArea.getRight() - x_offset - 20, subArea.getY(),
+												x_offset, subArea.getHeight());
+	nameAndVersionBounds.setCentre(nameAndVersionBounds.getCentreX(), subArea.getCentreY());
+	
+	
+	
+	{	// place oversampling combo box
+		comboBoxes[0]->setBounds(visitSiteButton.getRight() + 10, subArea.getY(),
+														80, subArea.getHeight());
+	}
 }
 
