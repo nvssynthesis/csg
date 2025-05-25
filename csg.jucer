@@ -30,8 +30,23 @@
         <FILE id="BllyNC" name="PresetManager.h" compile="0" resource="0" file="Source/PresetManager.h"/>
       </GROUP>
       <GROUP id="{F9A44652-2BAA-AF85-44CC-E05DC777A40F}" name="GUI">
-        <FILE id="NUazu7" name="PresetPanel.cpp" compile="1" resource="0" file="Source/PresetPanel.cpp"/>
-        <FILE id="btSxuX" name="PresetPanel.h" compile="0" resource="0" file="Source/PresetPanel.h"/>
+        <FILE id="yNvj3O" name="util.h" compile="0" resource="0" file="Source/gui/util.h"/>
+        <FILE id="jcZcnx" name="AttachedComboBox.cpp" compile="1" resource="0"
+              file="Source/gui/AttachedComboBox.cpp"/>
+        <FILE id="aQ654o" name="AttachedComboBox.h" compile="0" resource="0"
+              file="Source/gui/AttachedComboBox.h"/>
+        <FILE id="La0u91" name="CSG_LookAndFeel.cpp" compile="1" resource="0"
+              file="Source/gui/CSG_LookAndFeel.cpp"/>
+        <FILE id="u88F2Y" name="CSG_LookAndFeel.h" compile="0" resource="0"
+              file="Source/gui/CSG_LookAndFeel.h"/>
+        <FILE id="G5pqN6" name="PresetPanel.cpp" compile="1" resource="0" file="Source/gui/PresetPanel.cpp"/>
+        <FILE id="mePhSm" name="PresetPanel.h" compile="0" resource="0" file="Source/gui/PresetPanel.h"/>
+        <FILE id="mJFhRn" name="ModulatedSlider.cpp" compile="1" resource="0"
+              file="Source/gui/ModulatedSlider.cpp"/>
+        <FILE id="EGEwyq" name="ModulatedSlider.h" compile="0" resource="0"
+              file="Source/gui/ModulatedSlider.h"/>
+        <FILE id="pOXbr7" name="UtilityKnob.cpp" compile="1" resource="0" file="Source/gui/UtilityKnob.cpp"/>
+        <FILE id="tmnlhz" name="UtilityKnob.h" compile="0" resource="0" file="Source/gui/UtilityKnob.h"/>
       </GROUP>
       <FILE id="CjkzIq" name="params.h" compile="0" resource="0" file="Source/params.h"/>
       <FILE id="yMFcXN" name="PluginEditor.cpp" compile="1" resource="0"

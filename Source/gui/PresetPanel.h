@@ -10,7 +10,7 @@
 
 #pragma once
 #include <JuceHeader.h>
-#include "PresetManager.h"
+#include "../PresetManager.h"
 
 namespace nvs::gui {
 
