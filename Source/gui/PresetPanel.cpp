@@ -58,8 +58,8 @@ void PresetPanel::configureButton(juce::Button &b, juce::String const& buttonTex
 void PresetPanel::paint(juce::Graphics &g) {
 	auto const p0 = Point<float>(getX(), getY());
 	auto const p1 = p0 + Point<float>(getWidth(), getHeight());
-	g.setGradientFill(ColourGradient(Colour(Colours::lightgrey).withMultipliedAlpha(0.15f), p0,
-									 Colour(Colours::darkgrey).withMultipliedAlpha(0.85f), p1, false));
+	g.setGradientFill(ColourGradient(Colour(Colours::lightgrey).withMultipliedAlpha(0.1f), p0,
+									 Colour(Colours::grey).withMultipliedAlpha(0.3f), p1, false));
 	g.fillRect(getLocalBounds());
 }
 void PresetPanel::resized() {

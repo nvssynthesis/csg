@@ -52,7 +52,8 @@ public:
 							   bool isMouseOverButton, bool isButtonDown) override;
 	void drawButtonText (Graphics& g, TextButton& b,
 						 bool /*isMouseOverButton*/, bool /*isButtonDown*/) override;
-	
+
+	void drawTooltip (Graphics &, const String &text, int width, int height) override;
 private:
 	float const notchWidthDegrees {8.f};
 	juce::Colour notchColour {juce::Colour(Colours::blueviolet).withMultipliedLightness(0.5f)};

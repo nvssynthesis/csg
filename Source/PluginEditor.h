@@ -22,6 +22,7 @@ class CsgAudioProcessorEditor  : public AudioProcessorEditor
 {
 public:
     CsgAudioProcessorEditor (CsgAudioProcessor&);
+	~CsgAudioProcessorEditor();
 
     //==============================================================================
     void paint (Graphics&) override;
@@ -29,8 +30,8 @@ public:
     
 private:
     CsgAudioProcessor& processor;
-	TooltipWindow  tooltipWindow;
 	nvs::gui::CSG_LookAndFeel csgLAF;
+	TooltipWindow  tooltipWindow;
 	nvs::gui::PresetPanel presetPanel;
 	juce::Rectangle<int> nameAndVersionBounds;
 	juce::HyperlinkButton   visitSiteButton { "info & donate @ nvssynthesis",

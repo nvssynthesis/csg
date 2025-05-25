@@ -18,6 +18,7 @@
 
 CsgAudioProcessorEditor::CsgAudioProcessorEditor (CsgAudioProcessor& p)
 : 	AudioProcessorEditor (&p), processor (p)
+,	csgLAF()
 ,	tooltipWindow (this, 500)      // hover‐delay = 500 ms
 ,	presetPanel(processor.getPresetManager())
 {
@@ -87,6 +88,8 @@ CsgAudioProcessorEditor::CsgAudioProcessorEditor (CsgAudioProcessor& p)
 	presetPanel.setLookAndFeel(&csgLAF);
 	addAndMakeVisible(presetPanel);
 	
+	tooltipWindow.setLookAndFeel(&csgLAF);
+	
 	addAndMakeVisible(visitSiteButton);
 	
 	visitSiteButton.setColour (juce::HyperlinkButton::textColourId, juce::Colour(Colours::deepskyblue).withAlpha(0.7f));
@@ -108,7 +111,9 @@ CsgAudioProcessorEditor::CsgAudioProcessorEditor (CsgAudioProcessor& p)
 
 	setSize (bg_w, bg_h);
 }
-
+CsgAudioProcessorEditor::~CsgAudioProcessorEditor() {
+//	tooltipWindow.setLookAndFeel (nullptr);
+}
 //==============================================================================
 void CsgAudioProcessorEditor::paint (Graphics& g)
 {   // let's make this plugin feel like a DIY noise synth

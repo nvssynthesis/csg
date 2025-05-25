@@ -31,6 +31,10 @@ CSG_LookAndFeel::CSG_LookAndFeel()
 	
 	setColour (TextButton::buttonColourId,          Colour(juce::Colours::transparentBlack).withAlpha(0.5f));
 	setColour (TextButton::buttonOnColourId,        Colour(juce::Colours::transparentBlack).withAlpha(0.5f));
+	
+	setColour (TooltipWindow::backgroundColourId, juce::Colours::black.withAlpha (0.8f));
+	setColour (TooltipWindow::textColourId,       juce::Colours::white.withAlpha (0.9f));
+	setColour (TooltipWindow::outlineColourId,    juce::Colours::grey.withAlpha (0.5f));
 }
 
 void CSG_LookAndFeel::drawComboBox (juce::Graphics& g, int width, int height, bool isButtonDown,
@@ -66,6 +70,24 @@ Font CSG_LookAndFeel::getComboBoxFont (ComboBox&) {
 Font CSG_LookAndFeel::getPopupMenuFont() {
 	return Font("Palatino", 13.0, Font::plain);
 }
+
+void CSG_LookAndFeel::drawTooltip (Graphics &g, const String &text, int width, int height)
+{
+	// background
+	g.setColour (findColour (TooltipWindow::backgroundColourId));
+	g.fillRoundedRectangle (0.0f, 0.0f, (float) width, (float) height, 4.0f);
+
+	// border
+	g.setColour (findColour (TooltipWindow::outlineColourId));
+	g.drawRoundedRectangle (0.0f, 0.0f, (float) width, (float) height, 4.0f, 1.0f);
+
+	// text
+	g.setColour (findColour (TooltipWindow::textColourId));
+	g.setFont (Font("Palatino", 13.0, Font::plain));
+//	g.drawFittedText (text, area, juce::Justification::centred, 2)
+	g.drawFittedText(text, g.getClipBounds(), juce::Justification::centred, 4);
+}
+
 void CSG_LookAndFeel::drawButtonBackground (Graphics& g, Button& b,
 											const Colour& backgroundColour,
 											bool isMouseOverButton, bool isButtonDown)
