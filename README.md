@@ -13,4 +13,4 @@ Current limitations: <br>
 
 CSG was [presented](https://www.youtube.com/watch?v=okdVPLvdnEc) at the Heretical Sound Synthesis in Helsinki. <br>
 
-![Alt text](csg.png "csg standalone")
+![csg](./csg.png "csg standalone")
