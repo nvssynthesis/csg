@@ -36,7 +36,7 @@ CsgAudioProcessorEditor::CsgAudioProcessorEditor (CsgAudioProcessor& p)
 				{
 					if (juce::RangedAudioParameter const *rap = dynamic_cast<juce::RangedAudioParameter const*>(param))
 					{
-						sliders.push_back(std::make_unique<ModulatedSlider>(apvts, *rap, paramSubGroup->getName()));
+						sliders.push_back(std::make_unique<nvs::gui::ModulatedSlider>(apvts, *rap, paramSubGroup->getName()));
 					}
 				}
 			}
@@ -62,7 +62,7 @@ CsgAudioProcessorEditor::CsgAudioProcessorEditor (CsgAudioProcessor& p)
 				}
 				else if (juce::RangedAudioParameter const *rap = dynamic_cast<juce::RangedAudioParameter const*>(param))
 				{
-					knobs.push_back(std::make_unique<UtilityKnob>(apvts, *rap));
+					knobs.push_back(std::make_unique<nvs::gui::UtilityKnob>(apvts, *rap));
 				}
 			}
 		}
@@ -73,18 +73,22 @@ CsgAudioProcessorEditor::CsgAudioProcessorEditor (CsgAudioProcessor& p)
 	
 	// make them visible
 	for (auto &s : sliders){
-		s->setLookAndFeel(&notchLAF);
+		s->setLookAndFeel(&csgLAF);
 		addAndMakeVisible(s.get());
 	}
 	for (auto &k : knobs){
-		k->setLookAndFeel(&notchLAF);
+		k->setLookAndFeel(&csgLAF);
 		addAndMakeVisible(k.get());
 	}
 	for (auto & cb : comboBoxes){
+		cb->setLookAndFeel(&csgLAF);
 		addAndMakeVisible(cb.get());
 	}
+	presetPanel.setLookAndFeel(&csgLAF);
 	addAndMakeVisible(presetPanel);
+	
 	addAndMakeVisible(visitSiteButton);
+	
 	visitSiteButton.setColour (juce::HyperlinkButton::textColourId, juce::Colour(Colours::deepskyblue).withAlpha(0.7f));
 	visitSiteButton.setFont(Font("Palatino", 14.f, Font::plain), false);
 	visitSiteButton.setJustificationType(Justification::bottomLeft);
@@ -207,7 +211,7 @@ void CsgAudioProcessorEditor::resized()
 				flex.flexWrap       = juce::FlexBox::Wrap::noWrap;
 
 				// collect sliders in this group
-				std::vector<ModulatedSlider*> groupSliders;
+				std::vector<nvs::gui::ModulatedSlider*> groupSliders;
 				for (auto& s : sliders) {
 					if (s->getParamGroupName().contains (groupName)) {
 						groupSliders.push_back (s.get());

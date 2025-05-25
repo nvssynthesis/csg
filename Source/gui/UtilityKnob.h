@@ -11,7 +11,8 @@
 #pragma once
 #include <JuceHeader.h>
 
-
+namespace nvs::gui
+{
 struct UtilityKnob	:	public juce::Component
 {
 	using Slider = juce::Slider;
@@ -19,13 +20,13 @@ struct UtilityKnob	:	public juce::Component
 	using String = juce::String;
 	
 	UtilityKnob(juce::AudioProcessorValueTreeState &apvts,
-					juce::RangedAudioParameter const &param,
-					int numDecimalPlacesToDisplay = 3,
-					Slider::SliderStyle sliderStyle = juce::Slider::LinearBarVertical,
+				juce::RangedAudioParameter const &param,
+				int numDecimalPlacesToDisplay = 3,
+				Slider::SliderStyle sliderStyle = juce::Slider::LinearBarVertical,
 				juce::Slider::TextEntryBoxPosition entryPos = juce::Slider::TextBoxBelow);
 	void resized() override;
 	String getParamName() const { return _paramName; }
-
+	
 	Slider _slider;
 	SliderAttachment _attachment;
 	
@@ -33,3 +34,4 @@ private:
 	String _paramName;
 	juce::Label _label;
 };
+}

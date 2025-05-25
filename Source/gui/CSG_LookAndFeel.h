@@ -11,10 +11,12 @@
 #pragma once
 #include <JuceHeader.h>
 
-class NotchLookAndFeel  : public juce::LookAndFeel_V4
+namespace nvs::gui
+{
+class CSG_LookAndFeel  : public juce::LookAndFeel_V4
 {
 public:
-	NotchLookAndFeel();
+	CSG_LookAndFeel();
 	void drawLinearSlider (Graphics& g,
 						   int x, int y, int width, int height,
 						   float sliderPos,
@@ -31,7 +33,28 @@ public:
 						   float rotaryEndAngle,
 						   juce::Slider& slider) override;
 	
+	void drawComboBox (juce::Graphics& g, int width, int height, bool isButtonDown,
+					   int buttonX, int buttonY, int buttonW, int buttonH, ComboBox& cb) override;
+	Font getComboBoxFont (ComboBox& /*cb*/) override;
+	
+	Font getPopupMenuFont() override;
+	void drawPopupMenuBackground (Graphics& g, int width, int height) override;
+	void drawPopupMenuItem (Graphics& g,
+							const Rectangle<int>& area,
+							bool isSeparator, bool isActive,
+							bool isHighlighted, bool isTicked,
+							bool hasSubMenu, const String& text,
+							const String& shortcutKeyText,
+							const Drawable* icon, Colour const* textColour) override;
+	
+	void drawButtonBackground (Graphics& g, Button& b,
+							   const Colour& backgroundColour,
+							   bool isMouseOverButton, bool isButtonDown) override;
+	void drawButtonText (Graphics& g, TextButton& b,
+						 bool /*isMouseOverButton*/, bool /*isButtonDown*/) override;
+	
 private:
 	float const notchWidthDegrees {8.f};
 	juce::Colour notchColour {juce::Colour(Colours::blueviolet).withMultipliedLightness(0.5f)};
 };
+}

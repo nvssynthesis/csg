@@ -11,14 +11,16 @@
 #include "UtilityKnob.h"
 #include "util.h"
 
+namespace nvs::gui
+{
 UtilityKnob::UtilityKnob(juce::AudioProcessorValueTreeState &apvts,
-					juce::RangedAudioParameter const &param,
-					int numDecimalPlacesToDisplay,
-					Slider::SliderStyle sliderStyle,
-					juce::Slider::TextEntryBoxPosition entryPos)
+						 juce::RangedAudioParameter const &param,
+						 int numDecimalPlacesToDisplay,
+						 Slider::SliderStyle sliderStyle,
+						 juce::Slider::TextEntryBoxPosition entryPos)
 :	_slider(),
-	_attachment(apvts, param.getParameterID(), _slider),
-	_paramName(param.getName(20))
+_attachment(apvts, param.getParameterID(), _slider),
+_paramName(param.getName(20))
 {
 	setupSlider(apvts, param.getParameterID(), _slider);
 	_slider.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
@@ -26,7 +28,7 @@ UtilityKnob::UtilityKnob(juce::AudioProcessorValueTreeState &apvts,
 	_slider.setColour(Slider::ColourIds::thumbColourId, juce::Colours::grey);
 	_slider.setColour(Slider::ColourIds::trackColourId, juce::Colours::darkgrey);
 	_slider.setColour(Slider::ColourIds::textBoxTextColourId, juce::Colours::lightgrey);
-
+	
 	_label.setFont({"Palatino", 10.f, 0});
 	_label.attachToComponent(&_slider, false);
 	_label.setText(_paramName, dontSendNotification);
@@ -40,3 +42,4 @@ void UtilityKnob::resized() {
 	_slider.setBounds(getLocalBounds());
 }
 
+}

@@ -11,6 +11,8 @@
 #pragma once
 #include <JuceHeader.h>
 
+namespace nvs::gui
+{
 struct ModulatedSlider	:	public juce::Component
 {
 	using Slider = juce::Slider;
@@ -36,3 +38,4 @@ private:
 	String _paramGroupName;
 	juce::Label _label;
 };
+}

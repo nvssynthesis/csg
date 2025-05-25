@@ -30,14 +30,14 @@ public:
 private:
     CsgAudioProcessor& processor;
 	TooltipWindow  tooltipWindow;
-	NotchLookAndFeel notchLAF;
+	nvs::gui::CSG_LookAndFeel csgLAF;
 	nvs::gui::PresetPanel presetPanel;
 	juce::Rectangle<int> nameAndVersionBounds;
 	juce::HyperlinkButton   visitSiteButton { "info & donate @ nvssynthesis",
 								   URL ("https://nvssynthesis.github.io/") };
 	
-	std::vector<std::unique_ptr<ModulatedSlider>> sliders;
-	std::vector<std::unique_ptr<UtilityKnob>> knobs;
+	std::vector<std::unique_ptr<nvs::gui::ModulatedSlider>> sliders;
+	std::vector<std::unique_ptr<nvs::gui::UtilityKnob>> knobs;
 	std::vector<std::unique_ptr<AttachedComboBox>> comboBoxes;
 	
 	std::vector<juce::Rectangle<float>> groupAreas;
