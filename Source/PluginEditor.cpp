@@ -13,9 +13,6 @@
 #include "BinaryData.h"
 
 
-//==============================================================================
-
-
 CsgAudioProcessorEditor::CsgAudioProcessorEditor (CsgAudioProcessor& p)
 : 	AudioProcessorEditor (&p), processor (p)
 ,	csgLAF()
@@ -49,7 +46,6 @@ CsgAudioProcessorEditor::CsgAudioProcessorEditor (CsgAudioProcessor& p)
 		{
 			for (auto const *param : paramGroup->getParameters(false))
 			{
-				std::cout << param->getName(20) << '\n';
 				if (param->getName(20).contains(nvs::param::paramToName(nvs::param::PID_e::OVERSAMPLE_FACTOR)))
 				{
 					if (auto const *a = dynamic_cast<juce::AudioParameterChoice const*>(param)){
@@ -72,9 +68,27 @@ CsgAudioProcessorEditor::CsgAudioProcessorEditor (CsgAudioProcessor& p)
 		}
 	}
 	
+	std::vector<juce::String> disabledModulationParams = {
+		nvs::param::paramToName(nvs::param::PID_e::MEMORY),
+		nvs::param::paramToName(nvs::param::PID_e::DRIVE),
+		nvs::param::paramToName(nvs::param::PID_e::TYPE_L),
+		nvs::param::paramToName(nvs::param::PID_e::TYPE_R),
+		nvs::param::paramToName(nvs::param::PID_e::LFO_RATE),
+		nvs::param::paramToName(nvs::param::PID_e::LFO_WAVE),
+		nvs::param::paramToName(nvs::param::PID_e::DRONE),
+		nvs::param::paramToName(nvs::param::PID_e::RISE),
+		nvs::param::paramToName(nvs::param::PID_e::FALL)
+	};
+	
 	// make them visible
 	for (auto &s : sliders){
 		s->setLookAndFeel(&csgLAF);
+		for (auto const & p : disabledModulationParams)
+		{
+			if (s->getParamName() == p){
+				s->disableModulation();
+			}
+		}
 		addAndMakeVisible(s.get());
 	}
 	for (auto &k : knobs){

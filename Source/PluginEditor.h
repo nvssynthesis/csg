@@ -35,7 +35,7 @@ private:
 	nvs::gui::PresetPanel presetPanel;
 	juce::Rectangle<int> nameAndVersionBounds;
 	juce::HyperlinkButton   visitSiteButton { "info & donate @ nvssynthesis",
-								   URL ("https://nvssynthesis.github.io/") };
+								   URL ("https://nvssynthesis.github.io/projects.html") };
 	
 	std::vector<std::unique_ptr<nvs::gui::ModulatedSlider>> sliders;
 	std::vector<std::unique_ptr<nvs::gui::UtilityKnob>> knobs;

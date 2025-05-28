@@ -28,6 +28,8 @@ struct ModulatedSlider	:	public juce::Component
 	String getParamName() const { return _paramName; }
 	String getParamGroupName() const { return _paramGroupName; }
 	
+	void disableModulation();
+	
 	Slider _baseSlider;
 	SliderAttachment _baseAttachment;
 	Slider _modulationSlider;

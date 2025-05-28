@@ -51,6 +51,12 @@ _paramGroupName(paramGroupName)
 	addAndMakeVisible(_modulationSlider);
 	addAndMakeVisible(_label);
 }
+void ModulatedSlider::disableModulation(){
+	_modulationSlider.setValue(0.0);
+	_modulationSlider.setEnabled(false);
+	_modulationSlider.setTooltip(nvs::param::makeModName( getParamName() ) + ": This feature is not yet implemented.");
+}
+
 
 void ModulatedSlider::resized()
 {

@@ -7,8 +7,11 @@ Some reasons it sounds so insane: <br>
 -PM feedback is sin/cosine shaped (PM SHAPE), bitcrushed (PM DEGRADE), and tamed (PM TAME) <br>
 -The state-variable filter is a variant of a traditional SVF design, adding continuous nonlinearity in the resonance path. It is implemented using the Runge-Kutta method and sounds plausibly analog. <br>
 
+This project was built using JUCE 7.
+
 Current limitations: <br>
--Single modulation source (LFO) can be variably routed to any parameter (a couple exceptions, most notably the filter. This is a symptom of the fact that this was my first JUCE project and I ran into troubles with that. Will fix it when I get a chance!) <br>
+-Single modulation source (LFO) can be variably routed to most parameters. The parameters currently not working for modulation include Filter Drive, Filter Type, Memory, LFO Rate, LFO Shape, Drone, Rise, and Fall. These mod parameters will not allow you to adjust their knob, and a tooltip will inform you that the parameter has not been implemented yet.
+ <br>
 -Single 2-stage (RISE/FALL) envelope, only affects amplitude <br>
 
 CSG was [presented](https://www.youtube.com/watch?v=okdVPLvdnEc) at the Heretical Sound Synthesis in Helsinki. <br>
