@@ -270,7 +270,7 @@ void CsgAudioProcessorEditor::resized()
 #ifdef JUCE_DEBUG
 	330;
 #else
-	30;
+	294;
 #endif
 	nameAndVersionBounds = juce::Rectangle<int>(subArea.getRight() - x_offset - 20, subArea.getY(),
 												x_offset, subArea.getHeight());
