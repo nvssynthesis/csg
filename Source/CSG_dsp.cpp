@@ -133,8 +133,12 @@ float CSG::getWave()
 	// we can fade between the sin and cos parts with equal power.
 	float const pmPreampTmp = calcLinearModdedVal(*_smoothedParams, PID_e::PM_AMOUNT, modSources);
 	auto const pmShapeTmp = calcLinearModdedVal(*_smoothedParams, PID_e::PM_SHAPE, modSources);
-	float weighted_sincos = ((trig_tables.up_sin_LUT(_phase) *  sqrt(1.f - (pmShapeTmp))) +
-					   (trig_tables.up_cos_LUT(_phase * 2.f - 1.f) * sqrt(pmShapeTmp))) * pmPreampTmp;
+	
+	double constexpr twopi = nvs::memoryless::math_impl::two_pi<double>();
+	
+	auto const sinx = cosTable.sin(_phase * twopi);
+	auto const cosx = cosTable.cos(_phase * twopi * 2.f - 1.f);
+	float weighted_sincos = (sinx * sqrt(1.f - (pmShapeTmp)) + (cosx * sqrt(pmShapeTmp))) * pmPreampTmp;
 	
 	// now, bitcrush and filter that signal.
 	float const pmSmoothTmp = clamp<float>( calcLogModdedVal(*_smoothedParams, PID_e::PM_TAME, modSources), 1.f, getSampleRate() / 2 - 50.f);

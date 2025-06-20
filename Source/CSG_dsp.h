@@ -87,7 +87,7 @@ private:
 	//FM = frequency modulate,
 	//PM = phase modulate.
 	double bits1, bits2, FM_smooth, PM_sin2cos, PM_preamp, PM_smooth;
-	nvs::memoryless::trigTables<double> trig_tables;
+	nvs::memoryless::CosTable<float, double, 16384, nvs::memoryless::InterpolationType::Linear> cosTable;
 	
 	//float zLine[16];
 	juce::AudioSampleBuffer zLine;

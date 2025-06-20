@@ -161,6 +161,14 @@ void CsgAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer& mi
 	//======================================================================
     csgSynth.renderNextBlock(buffer, midiMessages, 0, buffer.getNumSamples());
 	//======================================================================
+#ifdef DBG
+	for (auto i = 0; i < buffer.getNumChannels(); ++i){
+		for (auto j = 0; j < buffer.getNumSamples(); ++j){
+			auto *wp = buffer.getWritePointer(i, j);
+			*wp = juce::jlimit(-1.f, 1.f, *wp);
+		}
+	}
+#endif
 }
 
 //==========================================================================
