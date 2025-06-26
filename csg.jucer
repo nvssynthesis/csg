@@ -17,6 +17,8 @@
         <FILE id="cYgFCG" name="SynthVoice.cpp" compile="1" resource="0" file="Source/SynthVoice.cpp"/>
       </GROUP>
       <GROUP id="{D5509354-C77A-5E73-CEED-481B879D73D7}" name="nvs_libraries">
+        <FILE id="aV0HMh" name="nvs_fast_math_impl.h" compile="0" resource="0"
+              file="nvs_libraries/nvs_libraries/include/nvs_fast_math_impl.h"/>
         <FILE id="QkVLdZ" name="nvs_delayFilters.h" compile="0" resource="0"
               file="nvs_libraries/nvs_libraries/include/nvs_delayFilters.h"/>
         <FILE id="kmAC6L" name="nvs_filters.h" compile="0" resource="0" file="nvs_libraries/nvs_libraries/include/nvs_filters.h"/>
