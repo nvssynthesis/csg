@@ -13,7 +13,7 @@ namespace nvs::csg{
 
 
 CSG::CSG(nvs::param::SmoothedParamsManager *smoothedParams)
-:  _phase(0.f), _smoothedParams(smoothedParams), memory(2.f), bits1(2048.f), bits2(2048.f), zLine(1, 32)
+:  _phase(0.f), _smoothedParams(smoothedParams), zLine(1, 32)
 {
 	clearDelay();
 }
@@ -36,8 +36,9 @@ bool CSG::sampleRateValid() const {
 	return almost_equal(fs, 1.f/fs_delta) == almost_equal(FM_filter.getSampleRate(), PM_filter.getSampleRate()) == almost_equal(dc_b.getSampleRate(), fs) == true;
 }
 
-void CSG::setFrequency(float newFreq){
-	assert(newFreq < (fs * 0.5) && newFreq > 0.0);
+void CSG::setFrequencyMultiplier(double freqMult){
+	jassert(0.0 < freqMult);
+	_freq_multiplier = freqMult;
 }
 
 void CSG::clearDelay()
@@ -52,18 +53,17 @@ void CSG::clearDelay()
 float CSG::phasor()
 {
 	using namespace nvs::memoryless;
-	_phase += base_freq * fs_delta;
+	_phase +=_freq_multiplier *  base_freq * fs_delta;
 	_phase = mspWrap(_phase);
 	return _phase;
 }
 float CSG::phasor_fm(float sample)
 {
 	using namespace nvs::memoryless;
-	_phase += (base_freq + sample) * fs_delta;
+	_phase += _freq_multiplier * (base_freq + sample) * fs_delta;
 	_phase = mspWrap(_phase);
 	return _phase;
 }
-
 
 
 float CSG::getWave()
@@ -72,18 +72,6 @@ float CSG::getWave()
 	// called per sample
 	using namespace nvs::memoryless;
 	using namespace nvs::param;
-	//update params===================================================================================
-	base_freq	= _smoothedParams->getNextValue(PID_e::PITCH);
-	selfFM      = _smoothedParams->getNextValue(PID_e::SELF_FM);
-	memory      = _smoothedParams->getNextValue(PID_e::MEMORY);
-	FM_smooth   = _smoothedParams->getNextValue(PID_e::FM_SMOOTH);
-	bits1       = _smoothedParams->getNextValue(PID_e::FM_DEGRADE);
-	PM_preamp   = _smoothedParams->getNextValue(PID_e::PM_AMOUNT);
-	PM_smooth   = _smoothedParams->getNextValue(PID_e::PM_TAME);
-	PM_sin2cos  = _smoothedParams->getNextValue(PID_e::PM_SHAPE);
-	bits2       = _smoothedParams->getNextValue(PID_e::PM_DEGRADE);
-	//end update params===============================================================================
-	
 	
 	while (rp < 0)
 		rp = (rp + zLength) - 1;
@@ -154,12 +142,17 @@ float CSG::getWave()
 	//z2 = output;
 	
 	//increment delay line============================================================================
+	float const mem_tmp = [mem_raw_val = calcLinearModdedVal(*_smoothedParams, PID_e::MEMORY, modSources), L = float(this->zLength)](){
+		auto val = scale(mem_raw_val, 1.f, L);
+		val = mspWrap(val);
+		return scale(val, 0.f, 1.f, 1.f, L);
+	}();
 	wp -= 1;
-	wp = fmodf(wp, memory);
-	rp = wp + (int)memory;
-	rp = fmodf(rp, memory);
+	wp = fmodf(wp, mem_tmp);
+	rp = wp + (int)mem_tmp;
+	rp = fmodf(rp, mem_tmp);
 	rp_neighbor = rp + 1;
-	rp_neighbor = fmodf(rp_neighbor, memory);
+	rp_neighbor = fmodf(rp_neighbor, mem_tmp);
 	//end increment delay line========================================================================
 	
 	if (wp < 0)

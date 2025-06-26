@@ -30,7 +30,10 @@ bool CSGVoice::canPlaySound (SynthesiserSound* sound)
 void CSGVoice::startNote (int midiNoteNumber, float velocity, SynthesiserSound* sound, int currentPitchWheelPosition)
 {
 	gate = 1;
-	frequency = MidiMessage::getMidiNoteInHertz(midiNoteNumber);
+	
+	double freqMult = MidiMessage::getMidiNoteInHertz(midiNoteNumber) / 440.0;
+	unit.setFrequencyMultiplier(freqMult);
+
 	velocityLevel = velocity;
 }
 //===========================================================================
@@ -101,9 +104,6 @@ void CSGVoice::renderNextBlock (AudioBuffer<float> &outputBuffer, int startSampl
 	svf.setBlockSize(numSamples);
 	
 	_smoothedParams->updateTargets();
-
-	// was in sample for loop
-	unit.setFrequency(frequency);
 	
 	jassert(_smoothedParams);
 	

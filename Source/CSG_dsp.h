@@ -54,7 +54,7 @@ public:
 	
 	void setSampleRate(double sample_rate);
 	double getSampleRate() const;
-	void setFrequency(float newFreq);
+	void setFrequencyMultiplier(double freqMult);
 	void clearDelay();
 	float phasor();
 	float phasor_fm(float sample);
@@ -64,13 +64,12 @@ public:
 	 TODO: figure out better schema for coupling direct params and their modulation counterparts, and make raw values private
 	 */
 	
-//	float _selfFM_MOD, _FM_smooth_MOD, _bits_A_MOD, _PM_preamp_MOD, _PM_sin2cos_MOD, _bits_B_MOD, _PM_smooth_MOD;
 	void addModSource(float const* source){
 		modSources.push_back(source);
 	}
 private:
 	double fs, fs_delta;
-	double _freq {110.0};
+	double _freq_multiplier {1.0};
 	double _phase;  // master phasor
 	
 	std::vector<float const*> modSources;
@@ -82,11 +81,8 @@ private:
 	
 	int wp, rp, rp_neighbor, zLength;     // iterators for delay
 	
-	float base_freq, selfFM, memory;
+	double base_freq;
 	
-	//FM = frequency modulate,
-	//PM = phase modulate.
-	double bits1, bits2, FM_smooth, PM_sin2cos, PM_preamp, PM_smooth;
 	nvs::memoryless::CosTable<float, double, 16384, nvs::memoryless::InterpolationType::Linear> cosTable;
 	
 	//float zLine[16];

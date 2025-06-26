@@ -42,7 +42,6 @@ public:
 	}
 private:
 	double velocityLevel;
-	double frequency {110.0};
 	
 	nvs::param::SmoothedParamsManager *_smoothedParams;
 	
