@@ -55,14 +55,14 @@ float CSG::phasor()
 {
 	using namespace nvs::memoryless;
 	_phase += _freq * fs_delta;
-	_phase = mod_1<double>(_phase);
+	_phase = mspWrap(_phase);
 	return _phase;
 }
 float CSG::phasor_fm(float sample)
 {
 	using namespace nvs::memoryless;
 	_phase += (_freq + sample) * fs_delta;
-	_phase = mod_1<double>(_phase);
+	_phase = mspWrap(_phase);
 	return _phase;
 }
 
