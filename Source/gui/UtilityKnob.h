@@ -10,24 +10,23 @@
 
 #pragma once
 #include <JuceHeader.h>
+#include "RotaryKnob.h"
 
 namespace nvs::gui
 {
 struct UtilityKnob	:	public juce::Component
 {
-	using Slider = juce::Slider;
+	using Knob = RotaryKnob;
 	using SliderAttachment = juce::AudioProcessorValueTreeState::SliderAttachment;
 	using String = juce::String;
 	
 	UtilityKnob(juce::AudioProcessorValueTreeState &apvts,
 				juce::RangedAudioParameter const &param,
-				int numDecimalPlacesToDisplay = 3,
-				Slider::SliderStyle sliderStyle = juce::Slider::LinearBarVertical,
-				juce::Slider::TextEntryBoxPosition entryPos = juce::Slider::TextBoxBelow);
+				int numDecimalPlacesToDisplay = 3);
 	void resized() override;
 	String getParamName() const { return _paramName; }
 	
-	Slider _slider;
+	Knob _knob;
 	SliderAttachment _attachment;
 	
 private:

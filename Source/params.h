@@ -410,10 +410,22 @@ private:
 				auto id = makeModID(paramWithID->getParameterID());
 				auto name = makeModName(paramWithID->getName(128));
 				
+				/*
+				 (const ParameterID& parameterID,
+									  const String& parameterName,
+									  NormalisableRange<float> normalisableRange,
+									  float defaultValue,
+									  const AudioParameterFloatAttributes& attributes = {})
+				 */
 				result->addChild(std::make_unique<APF>(JPID{id, 1},
 													   name,
 													   juce::NormalisableRange<float>(0.0f, 1.0f),
-													   0.0f));
+													   0.0f,
+													   AudioParameterFloatAttributes()
+													   .withStringFromValueFunction([](float x, int numDecimalPlaces) -> String {
+															return juce::String(x*100.f, 1) + "%";
+													   })
+													   ));
 			}
 			else {
 				std::cerr << "could not cast to parameter with ID\n";
@@ -431,7 +443,10 @@ private:
 									 /*default index is 4x*/ 2 ),
 							 std::make_unique<APF>(JPID{ paramToID(PID_e::OUTPUT_GAIN), 1 }, paramToName(PID_e::OUTPUT_GAIN),
 												   makeGainRange(-60.0f, 0.0f),
-												   0.5f));	// not sure why it is not specified in the log scaling, but here: -6dB default
+												   0.5f,
+												   AudioParameterFloatAttributes().withStringFromValueFunction([](float val, int numDecimals){
+													   return String(Decibels::gainToDecibels(val), 1) + "dB";
+												   })));	// not sure why it is not specified in the log scaling, but here: -6dB default
 	}
 	static juce::AudioProcessorValueTreeState::ParameterLayout createParamLayout() {
 		juce::AudioProcessorValueTreeState::ParameterLayout layout;

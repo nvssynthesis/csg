@@ -200,8 +200,8 @@ void CsgAudioProcessorEditor::resized()
 			std::vector<float> weights;
 			for (auto& groupName : groups) {
 				if      (groupName == "FILTER") weights.push_back (1.2f);
-				else if (groupName == "ENV")    weights.push_back (1.0f);
-				else if (groupName == "LFO")    weights.push_back (0.7f);
+				else if (groupName == "ENV")    weights.push_back (0.8f);
+				else if (groupName == "LFO")    weights.push_back (0.5f);
 				else                            weights.push_back (1.0f);
 			}
 
@@ -220,8 +220,7 @@ void CsgAudioProcessorEditor::resized()
 				groupAreas.push_back (groupArea);
 
 				// compute a skinnyWidth based on this slice
-				const float typeWidthRatio = 0.17f;
-				const float skinnyWidth    = groupArea.getWidth() * typeWidthRatio;
+				const float skinnyWidth    = 46.f; //groupArea.getWidth() * 0.17f;
 
 				juce::FlexBox flex;
 				flex.flexDirection  = juce::FlexBox::Direction::row;
@@ -237,16 +236,22 @@ void CsgAudioProcessorEditor::resized()
 					}
 				}
 				// add them, using the proportional skinnyWidth for TYPE
+				const float sliderPadding = groupArea.getWidth() * 0.03f; // adjust this value to control thickness
 				for (auto* slider : groupSliders) {
 					if (slider->getParamName().contains ("TYPE")) {	// filter type selector slider
 						flex.items.add ( juce::FlexItem (*slider)
-											 .withFlex     (0, 0)
-											 .withMinWidth (skinnyWidth)
-											 .withMaxWidth (skinnyWidth) );
+											 .withFlex     (1.0f, 10.0f)
+											 .withMinWidth (skinnyWidth * 0.9f)
+											 .withMaxWidth (skinnyWidth * 1.5f )
+											 .withMargin(juce::FlexItem::Margin(0, sliderPadding* 0.2f, 0, sliderPadding * 0.2f))
+										);
 					}
 					else {
 						flex.items.add ( juce::FlexItem (*slider)
-											 .withFlex (1.0f, 1.0f) );
+											.withFlex (2.0f, 0.0f)
+											.withMinWidth(50.f)
+											.withMargin ({0, sliderPadding*0.7f, 0, sliderPadding*0.7f})
+										);
 					}
 				}
 

@@ -17,9 +17,10 @@ CSG_LookAndFeel::CSG_LookAndFeel()
 	auto scheme = getDarkColourScheme();
 	scheme.setUIColour(ColourScheme::UIColour::defaultFill, notchColour);
 	setColourScheme(scheme);
-	setColour (juce::Slider::rotarySliderOutlineColourId, juce::Colour(juce::Colours::lightgrey).withAlpha(0.4f));
+	setColour (juce::Slider::trackColourId, juce::Colours::black);
+	setColour (juce::Slider::rotarySliderOutlineColourId, juce::Colours::lightgrey.withAlpha(0.4f));
 	
-	setColour (ComboBox::backgroundColourId,   Colour(juce::Colours::transparentBlack).withAlpha(0.5f));
+	setColour (ComboBox::backgroundColourId,   juce::Colours::transparentBlack.withAlpha(0.5f));
 	setColour (ComboBox::outlineColourId,      juce::Colours::grey.withAlpha (0.3f));
 	setColour (ComboBox::ColourIds::focusedOutlineColourId, juce::Colours::grey.withAlpha (0.6f));
 	setColour (ComboBox::arrowColourId,        juce::Colours::lightgrey);
@@ -29,8 +30,8 @@ CSG_LookAndFeel::CSG_LookAndFeel()
 	setColour (PopupMenu::backgroundColourId,      juce::Colours::darkgrey.darker());
 	setColour (PopupMenu::highlightedBackgroundColourId, juce::Colours::darkgrey);
 	
-	setColour (TextButton::buttonColourId,          Colour(juce::Colours::transparentBlack).withAlpha(0.5f));
-	setColour (TextButton::buttonOnColourId,        Colour(juce::Colours::transparentBlack).withAlpha(0.5f));
+	setColour (TextButton::buttonColourId,          juce::Colours::transparentBlack.withAlpha(0.5f));
+	setColour (TextButton::buttonOnColourId,        juce::Colours::transparentBlack.withAlpha(0.5f));
 	
 	setColour (TooltipWindow::backgroundColourId, juce::Colours::black.withAlpha (0.8f));
 	setColour (TooltipWindow::textColourId,       juce::Colours::white.withAlpha (0.9f));
@@ -174,12 +175,22 @@ void CSG_LookAndFeel::drawLinearSlider (Graphics& g,
 		
 		Rectangle<int> tb (x, y + (height/2 - 10), width, 20);
 		
-		bool over    = (tb.getCentreY() >= sliderPos);
-		g.setColour (over ? juce::Colour(Colours::grey).withMultipliedBrightness(1.25f) : juce::Colour(Colours::grey).withMultipliedBrightness(1.5f));
+		bool const belowMiddle = (tb.getCentreY() < sliderPos);
+		auto colour = belowMiddle ? Colours::grey.withMultipliedBrightness(1.45f) :
+			Colours::grey.withMultipliedBrightness(1.f);
+		
+		if (!s.isMouseOver())
+		{
+			colour = colour.withMultipliedAlpha(0.33f);
+		}
+		else {}
+		
+		g.setColour(colour);
 		
 		g.setFont(Font ("Palatino", 13.5f, Font::plain));
 		g.drawFittedText (s.getTextFromValue (s.getValue()),
 						  tb, Justification::centred, 1);
+		
 	}
 	else
 	{
