@@ -64,6 +64,7 @@ inline String groupToID(GroupID_e group) {
 }
 
 #define PARAM_LIST          \
+  X(PITCH)					\
   X(SELF_FM)                \
   X(MEMORY)                 \
   X(FM_SMOOTH)              \
@@ -82,6 +83,7 @@ inline String groupToID(GroupID_e group) {
   X(DRONE)                  \
   X(RISE)                   \
   X(FALL)                   \
+  X(PITCH_MOD)				\
   X(SELF_FM_MOD)            \
   X(MEMORY_MOD)             \
   X(FM_SMOOTH_MOD)          \
@@ -144,8 +146,9 @@ inline String makeModName(String paramName){
 }
 
 inline constexpr PID_e basePIDToModPID(PID_e id) {
-	return PID_e(size_t(id) + 18);
+	return PID_e(size_t(id) + 19);
 }
+static_assert(basePIDToModPID(PID_e::PITCH) == PID_e::PITCH_MOD);
 static_assert(basePIDToModPID(PID_e::SELF_FM) == PID_e::SELF_FM_MOD);
 static_assert(basePIDToModPID(PID_e::PM_TAME) == PID_e::PM_TAME_MOD);
 static_assert(basePIDToModPID(PID_e::CUTOFF) == PID_e::CUTOFF_MOD);
@@ -354,6 +357,7 @@ private:
 	static std::unique_ptr<AudioParameterGroup> makeMainParamsGroup() {
 		std::unique_ptr<AudioParameterGroup> FMParameterGroup = std::make_unique<AudioParameterGroup>(
 												groupToID(GroupID_e::FM), 	groupToName(GroupID_e::FM), "|",
+												makeFrequencyParameter(PID_e::PITCH, 13.75, 880.0, 110.0),
 												makeAPF(PID_e::SELF_FM, 	makeSelfFMRange(), 0.0f, 5),
 												makeAPF(PID_e::MEMORY,		NormRangeF{1.f, 32.f}, 1.f),
 												makeFrequencyParameter(PID_e::FM_SMOOTH),

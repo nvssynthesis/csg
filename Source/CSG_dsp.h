@@ -82,7 +82,7 @@ private:
 	
 	int wp, rp, rp_neighbor, zLength;     // iterators for delay
 	
-	float selfFM, memory;
+	float base_freq, selfFM, memory;
 	
 	//FM = frequency modulate,
 	//PM = phase modulate.

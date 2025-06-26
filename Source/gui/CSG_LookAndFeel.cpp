@@ -106,7 +106,7 @@ void CSG_LookAndFeel::drawButtonBackground (Graphics& g, Button& b,
 void CSG_LookAndFeel::drawButtonText (Graphics& g, TextButton& b,
 									  bool /*isMouseOverButton*/, bool /*isButtonDown*/)
 {
-	auto fontSize = jmin (16.0f, b.getHeight() * 0.6f);
+//	auto fontSize = jmin (16.0f, b.getHeight() * 0.6f);
 	g.setFont (getTextButtonFont(b, b.getHeight()));
 	g.setColour (b.getToggleState()
 				 ? findColour (TextButton::textColourOnId)

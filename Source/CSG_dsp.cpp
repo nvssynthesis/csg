@@ -13,7 +13,7 @@ namespace nvs::csg{
 
 
 CSG::CSG(nvs::param::SmoothedParamsManager *smoothedParams)
-:  _freq(110.f), _phase(0.f), _smoothedParams(smoothedParams), memory(2.f), bits1(2048.f), bits2(2048.f), zLine(1, 32)
+:  _phase(0.f), _smoothedParams(smoothedParams), memory(2.f), bits1(2048.f), bits2(2048.f), zLine(1, 32)
 {
 	clearDelay();
 }
@@ -38,12 +38,10 @@ bool CSG::sampleRateValid() const {
 
 void CSG::setFrequency(float newFreq){
 	assert(newFreq < (fs * 0.5) && newFreq > 0.0);
-	_freq = newFreq;
 }
 
 void CSG::clearDelay()
 {
-	//zLength = (sizeof(zLine)/sizeof(*zLine));
 	zLength = zLine.getNumSamples() - 1;
 	zLine.clear();
 	rp = 0;
@@ -54,14 +52,14 @@ void CSG::clearDelay()
 float CSG::phasor()
 {
 	using namespace nvs::memoryless;
-	_phase += _freq * fs_delta;
+	_phase += base_freq * fs_delta;
 	_phase = mspWrap(_phase);
 	return _phase;
 }
 float CSG::phasor_fm(float sample)
 {
 	using namespace nvs::memoryless;
-	_phase += (_freq + sample) * fs_delta;
+	_phase += (base_freq + sample) * fs_delta;
 	_phase = mspWrap(_phase);
 	return _phase;
 }
@@ -75,6 +73,7 @@ float CSG::getWave()
 	using namespace nvs::memoryless;
 	using namespace nvs::param;
 	//update params===================================================================================
+	base_freq	= _smoothedParams->getNextValue(PID_e::PITCH);
 	selfFM      = _smoothedParams->getNextValue(PID_e::SELF_FM);
 	memory      = _smoothedParams->getNextValue(PID_e::MEMORY);
 	FM_smooth   = _smoothedParams->getNextValue(PID_e::FM_SMOOTH);
@@ -127,6 +126,7 @@ float CSG::getWave()
 	// bitcrush that fed-back signal.
 //	auto const bits_a = clamp<float>(bits1 + (_bits_A_MOD * bits1), 1.01f, 2048.f);
 	auto const fm_degrade = clamp<float>(calcLinearModdedVal(*_smoothedParams, PID_e::FM_DEGRADE, modSources), 1.01f, 2048.f);
+	base_freq = calcLogModdedVal(*_smoothedParams, PID_e::PITCH, modSources);
 	float crushed_freqmod_sig = crush<float>(phasor_fm(feedback), fm_degrade);
 	
 	// on other hand, take sin and cos of phasor to do phase modulation (what will basically sound like wavefolding).

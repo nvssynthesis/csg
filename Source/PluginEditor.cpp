@@ -199,7 +199,9 @@ void CsgAudioProcessorEditor::resized()
 			// weights per param group
 			std::vector<float> weights;
 			for (auto& groupName : groups) {
-				if      (groupName == "FILTER") weights.push_back (1.2f);
+				if 		(groupName == "FM") 	weights.push_back(5.0 / 9.0);
+				else if (groupName == "PM") 	weights.push_back(4.0 / 9.0);
+				else if	(groupName == "FILTER") weights.push_back (1.2f);
 				else if (groupName == "ENV")    weights.push_back (0.8f);
 				else if (groupName == "LFO")    weights.push_back (0.5f);
 				else                            weights.push_back (1.0f);
