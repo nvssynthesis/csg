@@ -15,7 +15,7 @@ namespace nvs::service {
 const juce::File PresetManager::defaultDirectory {
 	File::getSpecialLocation(File::SpecialLocationType::commonDocumentsDirectory)
 							.getChildFile(ProjectInfo::companyName)
-							.getChildFile(ProjectInfo::projectName)
+							.getChildFile(ProjectInfo::projectName)	// on mac: /Users/Shared/nvssynthesis/csg
 };
 const juce::String PresetManager::extension{"csg"};
 const juce::String PresetManager::presetNameProperty{"PresetName"};
@@ -46,7 +46,6 @@ void PresetManager::savePreset(const String &name){
 	currentPreset.setValue(name);
 
 	const auto xml = _apvts.copyState().createXml();
-	std::cout << _apvts.state.toXmlString() << '\n';
 
 	const auto presetFile = defaultDirectory.getChildFile(name + "." + extension);
 	if (!xml->writeTo(presetFile)){
@@ -117,13 +116,14 @@ int PresetManager::loadPreviousPreset(){
 	return prevIndex;
 }
 
-StringArray PresetManager::getAllPresets() const{
+StringArray PresetManager::getAllPresets() const {
 	StringArray presets;
 	const auto fileArray = defaultDirectory.findChildFiles(File::TypesOfFileToFind::findFiles, false,  "*." + extension);
 	
 	for (const auto & f : fileArray){
 		presets.add(f.getFileNameWithoutExtension());
 	}
+	presets.sortNatural();
 	return presets;
 }
 

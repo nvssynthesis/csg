@@ -54,11 +54,23 @@ private:
 			presetListBox.setSelectedItemIndex(idx, dontSendNotification);
 		}
 		if (b == &deleteButton){
-			// present warning message
-#pragma message("present warning message")
-			
-			_presetManager.deletePreset(_presetManager.getCurrentPreset());
-			loadPresetList();
+			[[maybe_unused]]
+			bool const button1Clicked = juce::AlertWindow::showOkCancelBox(
+				juce::AlertWindow::WarningIcon,
+				"Delete Preset",
+				"Are you sure you want to delete the preset '" +
+				_presetManager.getCurrentPreset() + "'?\n\nThis action cannot be undone.",
+				"Delete",
+				"Cancel",
+				this,
+				juce::ModalCallbackFunction::create([this](int result) {
+					if (result == 1) { // User clicked "Delete"
+						_presetManager.deletePreset(_presetManager.getCurrentPreset());
+						loadPresetList();
+					}
+					// If result == 0, user clicked "Cancel" - do nothing
+				})
+			);
 		}
 	}
 	service::PresetManager &_presetManager;
