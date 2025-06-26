@@ -72,7 +72,11 @@ float CSG::getWave()
 	// called per sample
 	using namespace nvs::memoryless;
 	using namespace nvs::param;
-	
+	{
+		// if this ever fails, then the 'while' protective mechanism becomes too far from constant time
+		jassert (-1000 < rp);
+		jassert (rp < zLength + 1000);
+	}
 	while (rp < 0)
 		rp = (rp + zLength) - 1;
 	while (rp > zLength)
@@ -103,8 +107,7 @@ float CSG::getWave()
 		}
 	}(feedback_algo);
 
-//	float feedback_amt = clamp<float>(selfFM + _selfFM_MOD, 0.0f, 1.f) * 24000.f;
-	float feedback_amt = clamp<float>(calcLinearModdedVal(*_smoothedParams, PID_e::SELF_FM, modSources), 0.0f, 1.0f) * 24000.0f;	// is the clamp really essential?
+	float feedback_amt = clamp<float>(calcLinearModdedVal(*_smoothedParams, PID_e::SELF_FM, modSources), 0.0f, 1.0f) * 24000.0f; // is the clamp really essential?
 	float feedback_cutoff = clamp<float>( calcLogModdedVal(*_smoothedParams, PID_e::FM_SMOOTH, modSources), 1.f, getSampleRate() / 2 - 50.f);
 	
 	FM_filter.setCutoff(feedback_cutoff); // not smoothed currently
@@ -112,7 +115,6 @@ float CSG::getWave()
 	float feedback = FM_filter(fedback_delta * (fs * 0.000021f) * feedback_amt);
 	
 	// bitcrush that fed-back signal.
-//	auto const bits_a = clamp<float>(bits1 + (_bits_A_MOD * bits1), 1.01f, 2048.f);
 	auto const fm_degrade = clamp<float>(calcLinearModdedVal(*_smoothedParams, PID_e::FM_DEGRADE, modSources), 1.01f, 2048.f);
 	base_freq = calcLogModdedVal(*_smoothedParams, PID_e::PITCH, modSources);
 	float crushed_freqmod_sig = crush<float>(phasor_fm(feedback), fm_degrade);
@@ -133,7 +135,6 @@ float CSG::getWave()
 	PM_filter.setCutoff(pmSmoothTmp);
 	
 	auto const pm_degrade = calcLinearModdedVal(*_smoothedParams, PID_e::PM_DEGRADE, modSources);
-//	float sinwin = PM_filter(crush<float>(weighted_sincos, clamp<float>(bits2 + (_bits_B_MOD * bits2), 1.01f, 2048.f) ));
 	float sinwin = PM_filter(crush<float>(weighted_sincos, clamp<float>(pm_degrade, 1.01f, 2048.f) ));
 
 	// sum the FM part and PM part. Make them both bipolar.
