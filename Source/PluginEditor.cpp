@@ -46,7 +46,8 @@ CsgAudioProcessorEditor::CsgAudioProcessorEditor (CsgAudioProcessor& p)
 		{
 			for (auto const *param : paramGroup->getParameters(false))
 			{
-				if (param->getName(20).contains(nvs::param::paramToName(nvs::param::PID_e::OVERSAMPLE_FACTOR)))
+				auto const pName = param->getName(20);
+				if (pName.contains(nvs::param::paramToName(nvs::param::PID_e::OVERSAMPLE_FACTOR)))
 				{
 					if (auto const *a = dynamic_cast<juce::AudioParameterChoice const*>(param)){
 						auto acb = std::make_unique<AttachedComboBox>(apvts, *a);
@@ -54,6 +55,19 @@ CsgAudioProcessorEditor::CsgAudioProcessorEditor (CsgAudioProcessor& p)
 						acb->_comboBox.addItemList (nvs::param::oversampleLabels, /*item IDs start at 1*/ 1);
 						acb->_comboBox.setSelectedItemIndex (a->getIndex(), juce::dontSendNotification);
 						acb->_comboBox.setTooltip ("Oversampling (Improves filter accuracy for high frequencies)");
+						acb->setName(pName);
+						comboBoxes.push_back(std::move(acb));
+					}
+				}
+				else if (pName.contains(nvs::param::paramToName(nvs::param::PID_e::FEEDBACK_CIRCUIT)))
+				{
+					if (auto const *a = dynamic_cast<juce::AudioParameterInt const*>(param)){
+						auto acb = std::make_unique<AttachedComboBox>(apvts, *a);
+						
+						acb->_comboBox.addItemList (nvs::param::feedbackCircuitLabels, /*item IDs start at 1*/ 1);
+						acb->_comboBox.setSelectedItemIndex (1, juce::dontSendNotification);
+						acb->_comboBox.setTooltip ("Selects the feedback circuit type for MEMORY");
+						acb->setName(pName);
 						comboBoxes.push_back(std::move(acb));
 					}
 				}
@@ -283,10 +297,24 @@ void CsgAudioProcessorEditor::resized()
 	nameAndVersionBounds.setCentre(nameAndVersionBounds.getCentreX(), subArea.getCentreY());
 	
 	
-	
-	{	// place oversampling combo box
-		comboBoxes[0]->setBounds(visitSiteButton.getRight() + 10, subArea.getY(),
-														80, subArea.getHeight());
+	for (auto &cb : comboBoxes){
+		if (cb->getName().contains(nvs::param::paramToName(nvs::param::PID_e::OVERSAMPLE_FACTOR))){
+			// place oversampling combo box
+			cb->setBounds(visitSiteButton.getRight() + 10, subArea.getY(),
+									 80, subArea.getHeight());
+		}
+		else if (cb->getName().contains(nvs::param::paramToName(nvs::param::PID_e::FEEDBACK_CIRCUIT))){
+			// place oversampling combo box
+			auto const presetPanelBounds = presetPanel.getBounds();
+			auto const paramsTopLeft = paramsArea.getTopLeft();
+			
+			auto const x = paramsTopLeft.getX();// + pad;
+			auto const y = presetPanelBounds.getBottom() + pad;
+			auto const w = 100;
+			auto const h = paramsTopLeft.getY() - presetPanelBounds.getBottom() - (2*pad);
+			
+			cb->setBounds(x, y, w, h);
+		}
 	}
 }
 

@@ -103,6 +103,7 @@ inline String groupToID(GroupID_e group) {
   X(RISE_MOD)               \
   X(FALL_MOD)               \
   Y(OVERSAMPLE_FACTOR)		\
+  Y(FEEDBACK_CIRCUIT)		\
   Y(OUTPUT_GAIN)
 
 enum class PID_e : size_t {
@@ -252,6 +253,12 @@ auto bitsStringToValue = [](const String& text) -> float
 };
 //=============================================================================================================================
 const juce::StringArray oversampleLabels { "1x", "2x", "4x", "8x", "16x", "32x", "64x", "128x"};
+const juce::StringArray feedbackCircuitLabels {
+	"sensible",
+	"compensating",
+	"tamed absurdity",
+	"senseless"
+};
 //=============================================================================================================================
 struct Params {
 	Params(juce::AudioProcessor& p)
@@ -288,6 +295,17 @@ private:
 									 })
 									 .withAutomatable(true)
 									 );
+	}
+	static std::unique_ptr<API> makeFeedbackCircuitSelectionParameter(PID_e pid) {
+		return std::make_unique<API>( JPID{paramToID(pid), 1 }, paramToName(pid), 0, 3, 0,
+									 juce::AudioParameterIntAttributes()
+									 .withStringFromValueFunction([](int value, int maximumStringLength) {
+										 jassert ((0 <= value) && (value < feedbackCircuitLabels.size()));
+										 return feedbackCircuitLabels[value];
+									 })
+									 .withAutomatable(true)
+									 );
+		
 	}
 	static std::unique_ptr<APF> makeFrequencyParameter(PID_e pid, float min_freq=20.f, float max_freq=22000.f, float default_freq=1000.f){
 		return std::make_unique<APF>( JPID{ paramToID(pid), 1 }, paramToName(pid), makeFrequencyNormRange(min_freq, max_freq), default_freq,
@@ -440,6 +458,7 @@ private:
 	static std::unique_ptr<AudioParameterGroup> makeUtilityParamsGroup() {
 		return std::make_unique<AudioParameterGroup>(
 							 groupToID(GroupID_e::UTILITY), groupToName(GroupID_e::UTILITY), "|",
+							 makeFeedbackCircuitSelectionParameter(PID_e::FEEDBACK_CIRCUIT),
 							 std::make_unique<ChoiceParam>(
 									 juce::ParameterID { paramToID(PID_e::OVERSAMPLE_FACTOR),  1 },
 									 paramToName(PID_e::OVERSAMPLE_FACTOR),
