@@ -89,7 +89,7 @@ float CSG::getWave()
 	// take last output, get derivative, variably lowpass it to smoothen, and amplify it based on FM mod amount.
 	// feedback = FM_filter.tpt_lp((output - z2) * (fs * 0.000021) * pow((clamp<float>(selfFM + _selfFM_MOD, 0.f, 1.f) * 29), 3.f), clamp<float>(FM_smooth + (FM_smooth * _FM_smooth_MOD * 3.f), 20.f, 20000.f));
 #pragma warning("dc_b is used twice, which does not make sense for an iir filter because the state between calls will be changed")
-	int feedback_algo = 0;
+	int feedback_algo = _smoothedParams->getNextValue(PID_e::FEEDBACK_CIRCUIT);
 	
 	float fedback_delta =
 	[&](int algo){
