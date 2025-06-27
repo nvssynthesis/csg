@@ -13,7 +13,7 @@
 
 namespace nvs::gui
 {
-class CSG_LookAndFeel  : public juce::LookAndFeel_V4
+class CSG_LookAndFeel  : public LookAndFeel_V4
 {
 public:
 	CSG_LookAndFeel();
@@ -24,16 +24,16 @@ public:
 						   Slider::SliderStyle style,
 						   Slider& s) override;
 	
-	void drawPieSegment(juce::Graphics &g, juce::Rectangle<float> ellipseRect, float angle, float notchWidth, float sliderPosProportional, juce::Colour notchCol);
+	void drawPieSegment(Graphics &g, Rectangle<float> ellipseRect, float angle, float notchWidth, float sliderPosProportional, Colour notchCol);
 	
-	void drawRotarySlider (juce::Graphics& g,
+	void drawRotarySlider (Graphics& g,
 						   int x, int y, int width, int height,
 						   float sliderPosProportional,
 						   float rotaryStartAngle,
 						   float rotaryEndAngle,
-						   juce::Slider& slider) override;
-	
-	void drawComboBox (juce::Graphics& g, int width, int height, bool isButtonDown,
+						   Slider& slider) override;
+		
+	void drawComboBox (Graphics& g, int width, int height, bool isButtonDown,
 					   int buttonX, int buttonY, int buttonW, int buttonH, ComboBox& cb) override;
 	Font getComboBoxFont (ComboBox& /*cb*/) override;
 	Font getTextButtonFont (TextButton&, int buttonHeight) override;
@@ -57,6 +57,6 @@ public:
 	void drawTooltip (Graphics &, const String &text, int width, int height) override;
 private:
 	float const notchWidthDegrees {8.f};
-	juce::Colour notchColour {juce::Colour(Colours::blueviolet).withMultipliedLightness(0.5f)};
+	Colour notchColour {Colour(Colours::blueviolet).withMultipliedLightness(0.5f)};
 };
 }

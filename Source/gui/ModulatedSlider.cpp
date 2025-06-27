@@ -17,8 +17,7 @@ namespace nvs::gui
 ModulatedSlider::ModulatedSlider(juce::AudioProcessorValueTreeState &apvts,
 								 juce::RangedAudioParameter const &param,
 								 String paramGroupName,
-								 Slider::SliderStyle sliderStyle,
-								 juce::Slider::TextEntryBoxPosition entryPos)
+								 Slider::SliderStyle sliderStyle)
 :
 _baseSlider(),
 _baseAttachment(apvts, param.getParameterID(), _baseSlider),
@@ -29,7 +28,7 @@ _paramGroupName(paramGroupName)
 {
 	setupSlider(apvts, param.getParameterID(), _baseSlider);
 	_baseSlider.setSliderStyle(sliderStyle);
-	_baseSlider.setTextBoxStyle(entryPos, true, 50, 25);
+	_baseSlider.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
 	
 	_baseSlider.setColour(Slider::ColourIds::thumbColourId, juce::Colours::palevioletred);
 	_baseSlider.setColour(Slider::ColourIds::textBoxTextColourId, juce::Colours::darkgrey);

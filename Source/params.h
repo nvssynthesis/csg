@@ -447,6 +447,9 @@ private:
 													   .withStringFromValueFunction([](float x, int numDecimalPlaces) -> String {
 															return juce::String(x*100.f, 1) + "%";
 													   })
+													   .withValueFromStringFunction([](juce::String const& s){
+														   return s.getFloatValue() / 100.f;	// account for percentage
+													   })
 													   ));
 			}
 			else {

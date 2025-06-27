@@ -16,7 +16,7 @@ namespace nvs::gui
 {
 struct ModulatedSlider	:	public juce::Component
 {
-	using Slider = juce::Slider;
+	using Slider = EditableSlider;
 	using Knob = RotaryKnob;
 	using SliderAttachment = juce::AudioProcessorValueTreeState::SliderAttachment;
 	using String = juce::String;
@@ -24,8 +24,7 @@ struct ModulatedSlider	:	public juce::Component
 	ModulatedSlider(juce::AudioProcessorValueTreeState &apvts,
 					juce::RangedAudioParameter const &param,
 					String paramGroupName = "",
-					Slider::SliderStyle sliderStyle = juce::Slider::LinearBarVertical,
-					juce::Slider::TextEntryBoxPosition entryPos = juce::Slider::NoTextBox);
+					Slider::SliderStyle sliderStyle = juce::Slider::LinearBarVertical);
 	void resized() override;
 	String getParamName() const { return _paramName; }
 	String getParamGroupName() const { return _paramGroupName; }

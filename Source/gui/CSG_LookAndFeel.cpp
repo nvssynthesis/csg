@@ -17,31 +17,31 @@ CSG_LookAndFeel::CSG_LookAndFeel()
 	auto scheme = getDarkColourScheme();
 	scheme.setUIColour(ColourScheme::UIColour::defaultFill, notchColour);
 	setColourScheme(scheme);
-	setColour (juce::Slider::trackColourId, juce::Colours::black);
-	setColour (juce::Slider::rotarySliderOutlineColourId, juce::Colours::lightgrey.withAlpha(0.4f));
+	setColour (Slider::trackColourId, Colours::black);
+	setColour (Slider::rotarySliderOutlineColourId, Colours::lightgrey.withAlpha(0.4f));
 	
-	setColour (ComboBox::backgroundColourId,   juce::Colours::transparentBlack.withAlpha(0.5f));
-	setColour (ComboBox::outlineColourId,      juce::Colours::grey.withAlpha (0.3f));
-	setColour (ComboBox::ColourIds::focusedOutlineColourId, juce::Colours::grey.withAlpha (0.6f));
-	setColour (ComboBox::arrowColourId,        juce::Colours::lightgrey);
+	setColour (ComboBox::backgroundColourId,   Colours::transparentBlack.withAlpha(0.5f));
+	setColour (ComboBox::outlineColourId,      Colours::grey.withAlpha (0.3f));
+	setColour (ComboBox::ColourIds::focusedOutlineColourId, Colours::grey.withAlpha (0.6f));
+	setColour (ComboBox::arrowColourId,        Colours::lightgrey);
 	
-	setColour (PopupMenu::textColourId,        juce::Colours::snow.withBrightness(0.6f));
-	setColour (PopupMenu::highlightedTextColourId, juce::Colours::snow);
-	setColour (PopupMenu::backgroundColourId,      juce::Colours::darkgrey.darker());
-	setColour (PopupMenu::highlightedBackgroundColourId, juce::Colours::darkgrey);
+	setColour (PopupMenu::textColourId,        Colours::snow.withBrightness(0.6f));
+	setColour (PopupMenu::highlightedTextColourId, Colours::snow);
+	setColour (PopupMenu::backgroundColourId,      Colours::darkgrey.darker());
+	setColour (PopupMenu::highlightedBackgroundColourId, Colours::darkgrey);
 	
-	setColour (TextButton::buttonColourId,          juce::Colours::transparentBlack.withAlpha(0.5f));
-	setColour (TextButton::buttonOnColourId,        juce::Colours::transparentBlack.withAlpha(0.5f));
+	setColour (TextButton::buttonColourId,          Colours::transparentBlack.withAlpha(0.5f));
+	setColour (TextButton::buttonOnColourId,        Colours::transparentBlack.withAlpha(0.5f));
 	
-	setColour (TooltipWindow::backgroundColourId, juce::Colours::black.withAlpha (0.8f));
-	setColour (TooltipWindow::textColourId,       juce::Colours::white.withAlpha (0.9f));
-	setColour (TooltipWindow::outlineColourId,    juce::Colours::grey.withAlpha (0.5f));
+	setColour (TooltipWindow::backgroundColourId, Colours::black.withAlpha (0.8f));
+	setColour (TooltipWindow::textColourId,       Colours::white.withAlpha (0.9f));
+	setColour (TooltipWindow::outlineColourId,    Colours::grey.withAlpha (0.5f));
 }
 
-void CSG_LookAndFeel::drawComboBox (juce::Graphics& g, int width, int height, bool isButtonDown,
+void CSG_LookAndFeel::drawComboBox (Graphics& g, int width, int height, bool isButtonDown,
 									int buttonX, int buttonY, int buttonW, int buttonH, ComboBox& cb)
 {
-	auto bounds = juce::Rectangle<float> (0, 0, (float) width, (float) height).reduced (1.0f);
+	auto bounds = Rectangle<float> (0, 0, (float) width, (float) height).reduced (1.0f);
 	
 	g.setColour (findColour (ComboBox::backgroundColourId));
 	g.fillRect (bounds);
@@ -87,8 +87,8 @@ void CSG_LookAndFeel::drawTooltip (Graphics &g, const String &text, int width, i
 	// text
 	g.setColour (findColour (TooltipWindow::textColourId));
 	g.setFont (Font("Palatino", 13.0, Font::plain));
-//	g.drawFittedText (text, area, juce::Justification::centred, 2)
-	g.drawFittedText(text, g.getClipBounds(), juce::Justification::centred, 4);
+//	g.drawFittedText (text, area, Justification::centred, 2)
+	g.drawFittedText(text, g.getClipBounds(), Justification::centred, 4);
 }
 
 void CSG_LookAndFeel::drawButtonBackground (Graphics& g, Button& b,
@@ -179,8 +179,7 @@ void CSG_LookAndFeel::drawLinearSlider (Graphics& g,
 		auto colour = belowMiddle ? Colours::grey.withMultipliedBrightness(1.45f) :
 			Colours::grey.withMultipliedBrightness(1.f);
 		
-		if (!s.isMouseOver())
-		{
+		if (!s.isMouseOverOrDragging()) {
 			colour = colour.withMultipliedAlpha(0.33f);
 		}
 		else {}
@@ -199,10 +198,10 @@ void CSG_LookAndFeel::drawLinearSlider (Graphics& g,
 										  style, s);
 	}
 }
-void CSG_LookAndFeel::drawPieSegment(juce::Graphics &g, juce::Rectangle<float> ellipseRect, float angle, float notchWidth, float sliderPosProportional, juce::Colour notchCol)
+void CSG_LookAndFeel::drawPieSegment(Graphics &g, Rectangle<float> ellipseRect, float angle, float notchWidth, float sliderPosProportional, Colour notchCol)
 {
-	juce::Path p;
-	p.addPieSegment(ellipseRect.reduced(1.f), angle - juce::degreesToRadians(notchWidth), angle + juce::degreesToRadians(notchWidth), 0.f);
+	Path p;
+	p.addPieSegment(ellipseRect.reduced(1.f), angle - degreesToRadians(notchWidth), angle + degreesToRadians(notchWidth), 0.f);
 	
 	if (sliderPosProportional == 0.0f){
 		notchCol = notchCol.withAlpha(0.4f);
@@ -211,20 +210,21 @@ void CSG_LookAndFeel::drawPieSegment(juce::Graphics &g, juce::Rectangle<float> e
 	g.fillPath (p);
 }
 
-void CSG_LookAndFeel::drawRotarySlider (juce::Graphics& g,
+
+void CSG_LookAndFeel::drawRotarySlider (Graphics& g,
 										int x, int y, int width, int height,
 										float sliderPosProportional,
 										float rotaryStartAngle,
 										float rotaryEndAngle,
-										juce::Slider& slider)
+										Slider& slider)
 {
-	const float radius = juce::jmin (width, height) * 0.4f;
+	const float radius = jmin (width, height) * 0.4f;
 	const float centreX = x + width  * 0.5f;
 	const float centreY = y + height * 0.5f;
 	
 	// draw the circular outline
-	g.setColour (slider.findColour (juce::Slider::rotarySliderOutlineColourId));
-	juce::Rectangle<float> ellipseRect(centreX - radius,
+	g.setColour (slider.findColour (Slider::rotarySliderOutlineColourId));
+	Rectangle<float> ellipseRect(centreX - radius,
 									   centreY - radius,
 									   radius * 2.0f,
 									   radius * 2.0f);
@@ -233,9 +233,8 @@ void CSG_LookAndFeel::drawRotarySlider (juce::Graphics& g,
 	
 	const float angle = rotaryStartAngle + sliderPosProportional * (rotaryEndAngle - rotaryStartAngle);
 	
-	using juce::Path;
-	using Point = juce::Point<float>;
-	using Line = juce::Line<float>;
+	using Point = Point<float>;
+	using Line = Line<float>;
 	
 	// compute notch endpoints
 	const float innerRadius     = radius * 0.2f;  // start of the notch
@@ -248,6 +247,6 @@ void CSG_LookAndFeel::drawRotarySlider (juce::Graphics& g,
 		float y2 = centreY + std::sin (a) * outerRadius;
 		return Line(Point(x1, y1), Point(x2, y2));
 	};
-	drawPieSegment(g, ellipseRect, angle, notchWidthDegrees * 1.618f, sliderPosProportional, juce::Colours::black);
+	drawPieSegment(g, ellipseRect, angle, notchWidthDegrees * 1.618f, sliderPosProportional, Colours::black);
 }
 }

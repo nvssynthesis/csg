@@ -36,6 +36,8 @@
       </GROUP>
       <GROUP id="{F9A44652-2BAA-AF85-44CC-E05DC777A40F}" name="GUI">
         <FILE id="yNvj3O" name="util.h" compile="0" resource="0" file="Source/gui/util.h"/>
+        <FILE id="BR4riP" name="EditableSlider.h" compile="0" resource="0"
+              file="Source/gui/EditableSlider.h"/>
         <FILE id="hNurf4" name="RotaryKnob.cpp" compile="1" resource="0" file="Source/gui/RotaryKnob.cpp"/>
         <FILE id="ucmJgP" name="RotaryKnob.h" compile="0" resource="0" file="Source/gui/RotaryKnob.h"/>
         <FILE id="pOXbr7" name="UtilityKnob.cpp" compile="1" resource="0" file="Source/gui/UtilityKnob.cpp"/>
