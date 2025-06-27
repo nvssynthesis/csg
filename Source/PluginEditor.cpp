@@ -65,7 +65,8 @@ CsgAudioProcessorEditor::CsgAudioProcessorEditor (CsgAudioProcessor& p)
 						auto acb = std::make_unique<AttachedComboBox>(apvts, *a);
 						
 						acb->_comboBox.addItemList (nvs::param::feedbackCircuitLabels, /*item IDs start at 1*/ 1);
-						acb->_comboBox.setSelectedItemIndex (1, juce::dontSendNotification);
+						int idx = *apvts.getRawParameterValue(nvs::param::paramToID(nvs::param::PID_e::FEEDBACK_CIRCUIT));
+						acb->_comboBox.setSelectedItemIndex (idx, juce::dontSendNotification);
 						acb->_comboBox.setTooltip ("Selects the feedback circuit type for MEMORY");
 						acb->setName(pName);
 						comboBoxes.push_back(std::move(acb));
@@ -137,9 +138,6 @@ CsgAudioProcessorEditor::CsgAudioProcessorEditor (CsgAudioProcessor& p)
 	getConstrainer()->setMinimumWidth(628);
 
 	setSize (bg_w, bg_h);
-}
-CsgAudioProcessorEditor::~CsgAudioProcessorEditor() {
-//	tooltipWindow.setLookAndFeel (nullptr);
 }
 //==============================================================================
 void CsgAudioProcessorEditor::paint (Graphics& g)

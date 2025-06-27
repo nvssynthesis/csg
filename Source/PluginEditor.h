@@ -22,7 +22,6 @@ class CsgAudioProcessorEditor  : public AudioProcessorEditor
 {
 public:
     CsgAudioProcessorEditor (CsgAudioProcessor&);
-	~CsgAudioProcessorEditor();
 
     //==============================================================================
     void paint (Graphics&) override;
