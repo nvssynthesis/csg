@@ -31,8 +31,7 @@ void CSGVoice::startNote (int midiNoteNumber, float velocity, SynthesiserSound* 
 {
 	gate = 1;
 	
-	double freqMult = MidiMessage::getMidiNoteInHertz(midiNoteNumber) / 440.0;
-	unit.setFrequencyMultiplier(freqMult);
+	unit.setFrequencyMultiplier(MidiMessage::getMidiNoteInHertz(midiNoteNumber) / 440.0);
 
 	velocityLevel = velocity;
 }
@@ -60,15 +59,15 @@ void CSGVoice::stopNote (float velocity, bool allowTailOff)
 //===========================================================================
 void CSGVoice::pitchWheelMoved (int newPitchWheelValue)
 {
+#pragma message("implement me")
 }
+
 //===========================================================================
 void CSGVoice::setCurrentPlaybackSampleRate(double sampleRate) {
 	unit.setSampleRate(sampleRate);
 	env.setSampleRate(sampleRate);
 	svf.setSampleRate(sampleRate);
 	svf.clear();
-	//	env.setRise(0.01f);		// why needed? if needed then get rid of this necessity
-	//	env.setFall(0.01f);
 	lfo.setSampleRate(sampleRate);
 }
 bool CSGVoice::sampleRateValid() const {
@@ -113,19 +112,9 @@ void CSGVoice::renderNextBlock (AudioBuffer<float> &outputBuffer, int startSampl
 		lfo.phasor();   // increment internal phase of LFO
 		lfo_out = lfo.multi(_smoothedParams->getNextValue(PID_e::LFO_WAVE));
 		
-//		unit._selfFM_MOD = lfo_out * _smoothedParams->getNextValue(PID_e::SELF_FM_MOD);
-//		unit._FM_smooth_MOD = lfo_out * _smoothedParams->getNextValue(PID_e::FM_SMOOTH_MOD);
-//		unit._bits_A_MOD = lfo_out * _smoothedParams->getNextValue(PID_e::FM_DEGRADE_MOD);
-//
-//
-//		unit._PM_preamp_MOD = lfo_out * _smoothedParams->getNextValue(PID_e::PM_AMOUNT_MOD);
-//		unit._PM_smooth_MOD = lfo_out * _smoothedParams->getNextValue(PID_e::PM_TAME_MOD);
-//
-//		unit._bits_B_MOD = ((lfo_out * 2 - 1) * 256.f) * _smoothedParams->getNextValue(PID_e::PM_DEGRADE_MOD);
-//
-//		unit._PM_sin2cos_MOD = lfo_out * _smoothedParams->getNextValue(PID_e::PM_SHAPE_MOD);
+		using namespace nvs::memoryless;
 		
-		float const finalCutoff = nvs::memoryless::clamp<float>( calcLogModdedVal(*_smoothedParams, PID_e::CUTOFF, modSources), 1.f, (float)getSampleRate() / 2.f - 50.f);
+		float const finalCutoff = clamp<float>( calcLogModdedVal(*_smoothedParams, PID_e::CUTOFF, modSources), 1.f, (float)getSampleRate() / 2.f - 50.f);
 		svf.setCutoff(finalCutoff);
 		
 		auto const res = jlimit(0.0f, 6.0f, 5.0f * lfo_out * _smoothedParams->getNextValue(PID_e::RESO_MOD) + _smoothedParams->getNextValue(PID_e::RESO));
@@ -135,8 +124,7 @@ void CSGVoice::renderNextBlock (AudioBuffer<float> &outputBuffer, int startSampl
 		env.setFall(_smoothedParams->getNextValue(PID_e::FALL));
 
 		auto const csg_wave = unit.getWave();
-		
-		auto const drive = _smoothedParams->getNextValue(PID_e::DRIVE);
+		auto const drive = calcLogModdedVal(*_smoothedParams, PID_e::DRIVE, modSources);
 		svf.filter(csg_wave * drive);
 		
 		auto getFilterVal = [&](float filterSelection){
@@ -149,26 +137,31 @@ void CSGVoice::renderNextBlock (AudioBuffer<float> &outputBuffer, int startSampl
 			}
 		};
 		
-		float env_currentVal = env.ASR(gate);
-		env_currentVal *= env_currentVal;
+		float const env_currentVal = [this](){
+			auto const val = env.ASR(gate);
+			return val * val;
+		}();
 		
-		auto drone = _smoothedParams->getNextValue(PID_e::DRONE);
+		auto const drone = _smoothedParams->getNextValue(PID_e::DRONE);
 		
-		float vcf_outL = getFilterVal(_smoothedParams->getNextValue(PID_e::TYPE_L));
+		float const vcf_outL = getFilterVal(_smoothedParams->getNextValue(PID_e::TYPE_L));
 		jassert (0.0 < drive);
-		auto drive_compensate = 10.f * atan(0.1f / tanh(drive));
-
 		
+		// still need a good atan approximation
+//		auto const drive_compensate = 10.f * nvs::memoryless::atan_aprox(0.1f / math_impl::tanh(drive));
+//		auto const drive_compensate = 10.f * std::atan(0.1f / math_impl::tanh(drive));
+		auto const drive_compensate = 10.f * std::atan(0.1f / std::tanh(drive));
+
 		auto const outGain = _smoothedParams->getNextValue(nvs::param::PID_e::OUTPUT_GAIN);
 		
 		outputBuffer.addSample(0, startSample,
-							(atanf(vcf_outL * nvs::memoryless::linterp<float>(env_currentVal, drone, drone)) * drive_compensate) * MINUS_NINE_DB * outGain);
+							(std::atan(vcf_outL * nvs::memoryless::linterp<float>(env_currentVal, drone, drone)) * drive_compensate) * MINUS_NINE_DB * outGain);
 		
 		if (outputBuffer.getNumChannels() > 1)
 		{
-			float vcf_outR = getFilterVal(_smoothedParams->getNextValue(PID_e::TYPE_R));
+			float const vcf_outR = getFilterVal(_smoothedParams->getNextValue(PID_e::TYPE_R));
 			outputBuffer.addSample(1, startSample,
-							(atanf(vcf_outR * nvs::memoryless::linterp<float>(env_currentVal, drone, drone)) * drive_compensate) * MINUS_NINE_DB * outGain);
+							(std::atan(vcf_outR * nvs::memoryless::linterp<float>(env_currentVal, drone, drone)) * drive_compensate) * MINUS_NINE_DB * outGain);
 		}
 		
 		++startSample;

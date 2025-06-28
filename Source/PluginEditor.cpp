@@ -84,7 +84,7 @@ CsgAudioProcessorEditor::CsgAudioProcessorEditor (CsgAudioProcessor& p)
 	}
 	
 	std::vector<juce::String> disabledModulationParams = {
-		nvs::param::paramToName(nvs::param::PID_e::DRIVE),
+//		nvs::param::paramToName(nvs::param::PID_e::DRIVE),
 		nvs::param::paramToName(nvs::param::PID_e::TYPE_L),
 		nvs::param::paramToName(nvs::param::PID_e::TYPE_R),
 		nvs::param::paramToName(nvs::param::PID_e::LFO_RATE),
