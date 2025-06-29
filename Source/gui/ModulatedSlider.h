@@ -10,14 +10,14 @@
 
 #pragma once
 #include <JuceHeader.h>
-#include "RotaryKnob.h"
+#include "ModulationKnob.h"
 
 namespace nvs::gui
 {
 struct ModulatedSlider	:	public juce::Component
 {
 	using Slider = EditableSlider;
-	using Knob = RotaryKnob;
+	using ModKnob = ModulationKnob;
 	using SliderAttachment = juce::AudioProcessorValueTreeState::SliderAttachment;
 	using String = juce::String;
 	
@@ -33,7 +33,7 @@ struct ModulatedSlider	:	public juce::Component
 	
 	Slider _baseSlider;
 	SliderAttachment _baseAttachment;
-	Knob _modulationSlider;
+	ModKnob _modKnob;
 	SliderAttachment _modulationAttachment;
 	
 private:

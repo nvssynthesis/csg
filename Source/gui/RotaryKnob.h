@@ -15,7 +15,7 @@
 class RotaryKnob	:	public EditableSlider
 {
 // any time we want a rotary-style knob, use this instead.
-public:
+public:	
 	RotaryKnob(juce::AudioProcessorValueTreeState &apvts,
 			   juce::RangedAudioParameter const &param);
 	void mouseDown(const juce::MouseEvent& e) override;

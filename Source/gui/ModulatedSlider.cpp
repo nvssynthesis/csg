@@ -21,8 +21,8 @@ ModulatedSlider::ModulatedSlider(juce::AudioProcessorValueTreeState &apvts,
 :
 _baseSlider(),
 _baseAttachment(apvts, param.getParameterID(), _baseSlider),
-_modulationSlider(apvts, *(apvts.getParameter( nvs::param::makeModID(param.getParameterID()))) ),
-_modulationAttachment(apvts, nvs::param::makeModID(param.getParameterID()), _modulationSlider),
+_modKnob(apvts, *(apvts.getParameter( nvs::param::makeModID(param.getParameterID()))) ),
+_modulationAttachment(apvts, nvs::param::makeModID(param.getParameterID()), _modKnob),
 _paramName(param.getName(20)),
 _paramGroupName(paramGroupName)
 {
@@ -33,22 +33,22 @@ _paramGroupName(paramGroupName)
 	_baseSlider.setColour(Slider::ColourIds::thumbColourId, juce::Colours::palevioletred);
 	_baseSlider.setColour(Slider::ColourIds::textBoxTextColourId, juce::Colours::darkgrey);
 	
-	setupSlider(apvts, nvs::param::makeModID(param.getParameterID()), _modulationSlider);
+	setupSlider(apvts, nvs::param::makeModID(param.getParameterID()), _modKnob);
 	
 	_label.setJustificationType(juce::Justification::centred);
 	_label.setColour(juce::Label::textColourId, juce::Colours::lightgrey);
 	_label.setText(_paramName, dontSendNotification);
 	
-	_modulationSlider.setSize(3, 3);
+	_modKnob.setSize(3, 3);
 	
 	addAndMakeVisible(_baseSlider);
-	addAndMakeVisible(_modulationSlider);
+	addAndMakeVisible(_modKnob);
 	addAndMakeVisible(_label);
 }
 void ModulatedSlider::disableModulation(){
-	_modulationSlider.setValue(0.0);
-	_modulationSlider.setEnabled(false);
-	_modulationSlider.setTooltip(nvs::param::makeModName( getParamName() ) + ": This feature is not yet implemented.");
+	_modKnob.setValue(0.0);
+	_modKnob.setEnabled(false);
+	_modKnob.setTooltip(nvs::param::makeModName( getParamName() ) + ": This feature is not yet implemented.");
 }
 
 
@@ -68,7 +68,7 @@ void ModulatedSlider::resized()
 	flex.items.add ( FlexItem (_label)           .withFlex (0.11f, 1.0f, 11.f).withMinWidth(40.f) );
 	auto constexpr lrPad = 9.0;
 	flex.items.add ( FlexItem (_baseSlider)      .withFlex (0.64f, 1.0f, 64.f).withMinWidth(40.f).withMargin(FlexItem::Margin(0.0, lrPad, 0.0, lrPad)) );
-	flex.items.add ( FlexItem (_modulationSlider).withFlex (0.1f,  1.0f, 33.f).withMinWidth(35.f) );
+	flex.items.add ( FlexItem (_modKnob).withFlex (0.1f,  1.0f, 33.f).withMinWidth(35.f) );
 	
 	flex.performLayout (area);
 	
