@@ -20,7 +20,7 @@ public:
 	EditableSlider() {
 		setSliderSnapsToMousePosition(false);
 		setVelocityBasedMode(true);
-		setVelocityModeParameters(1.0,	// sensitivity
+		setVelocityModeParameters(1.2,	// sensitivity
 								1, 		// threshold
 								0.01, 	// offset
 								true,	// userCanPressKeyToSwapMode

@@ -258,7 +258,7 @@ void CsgAudioProcessorEditor::resized()
 					}
 				}
 				// add them, using the proportional skinnyWidth for TYPE
-				const float sliderPadding = groupArea.getWidth() * 0.03f; // adjust this value to control thickness
+				const float sliderPadding = groupArea.getWidth() * 0.0f; // adjust this value to control thickness
 				for (auto* slider : groupSliders) {
 					if (slider->getParamName().contains ("TYPE")) {	// filter type selector slider
 						flex.items.add ( juce::FlexItem (*slider)

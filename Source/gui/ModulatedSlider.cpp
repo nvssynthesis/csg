@@ -37,7 +37,6 @@ _paramGroupName(paramGroupName)
 	
 	_label.setFont({"Palatino", 13.f, 0});
 	_label.setJustificationType(juce::Justification::centred);
-	_label.attachToComponent(&_baseSlider, false);
 	_label.setColour(juce::Label::textColourId, juce::Colours::lightgrey);
 	_label.setText(_paramName, dontSendNotification);
 	
@@ -56,10 +55,11 @@ void ModulatedSlider::disableModulation(){
 
 void ModulatedSlider::resized()
 {
-	int const pad = 3;
+	int const pad = 1;
 	auto area = getLocalBounds().withTrimmedTop(pad).withTrimmedBottom(pad).withTrimmedLeft(1.1*pad).withTrimmedRight(1.1*pad).toFloat();
-	
 	using namespace juce;
+
+	
 	FlexBox flex;
 	
 	flex.flexDirection  = FlexBox::Direction::column;     		// vertical main axis
@@ -67,9 +67,14 @@ void ModulatedSlider::resized()
 	flex.justifyContent = FlexBox::JustifyContent::flexStart; 	// start at top
 	
 	flex.items.add ( FlexItem (_label)           .withFlex (0.11f, 1.0f, 11.f).withMinWidth(40.f) );
-	flex.items.add ( FlexItem (_baseSlider)      .withFlex (0.64f, 1.0f, 64.f).withMinWidth(40.f) );
+	auto constexpr lrPad = 9.0;
+	flex.items.add ( FlexItem (_baseSlider)      .withFlex (0.64f, 1.0f, 64.f).withMinWidth(40.f).withMargin(FlexItem::Margin(0.0, lrPad, 0.0, lrPad)) );
 	flex.items.add ( FlexItem (_modulationSlider).withFlex (0.1f,  1.0f, 33.f).withMinWidth(35.f) );
 	
 	flex.performLayout (area);
+	
+	float const labelHeight = _label.getHeight();
+	float const fontSize = juce::jlimit(8.0f, 18.0f, labelHeight * 0.6f); // 70% of label height
+	_label.setFont({"Palatino", fontSize, 0});
 }
 }
