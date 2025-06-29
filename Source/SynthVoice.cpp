@@ -91,6 +91,11 @@ unsigned int powi2(int exp) {
 	return 1 << exp;
 }
 
+static const std::map<int, nvs::filters::character_e> filterCharacterMap {
+	{0, nvs::filters::character_e::wrong},
+	{1, nvs::filters::character_e::correct}
+};
+
 void CSGVoice::renderNextBlock (AudioBuffer<float> &outputBuffer, int startSample, int numSamples)
 {
 	jassert (sampleRateValid());
@@ -101,6 +106,7 @@ void CSGVoice::renderNextBlock (AudioBuffer<float> &outputBuffer, int startSampl
 	
 	env.setBlockSize(numSamples);
 	svf.setBlockSize(numSamples);
+	svf.setCharacter(filterCharacterMap.at(_smoothedParams->_apvts.getRawParameterValue(param::paramToID(PID_e::FILTER_CHARACTER))->load()));
 	
 	_smoothedParams->updateTargets();
 	
@@ -108,10 +114,14 @@ void CSGVoice::renderNextBlock (AudioBuffer<float> &outputBuffer, int startSampl
 	
 	for (int sample = 0; sample < numSamples; ++sample)
 	{
-		lfo._freq = _smoothedParams->getNextValue(PID_e::LFO_RATE);
+		jassert (modSources[0] == modSources[0]);
+		lfo._freq = calcLogModdedVal(*_smoothedParams, PID_e::LFO_RATE, modSources);
 		lfo.phasor();   // increment internal phase of LFO
-		lfo_out = lfo.multi(_smoothedParams->getNextValue(PID_e::LFO_WAVE));
-		
+		auto const lfo_wave_idx = calcLinearModdedVal(*_smoothedParams, PID_e::LFO_WAVE, modSources);
+
+//		lfo_out = lfo.multi(fmod(lfo_wave_idx, 4.0));
+		lfo_out = lfo.multi(lfo_wave_idx);
+
 		using namespace nvs::memoryless;
 		
 		float const finalCutoff = clamp<float>( calcLogModdedVal(*_smoothedParams, PID_e::CUTOFF, modSources), 1.f, (float)getSampleRate() / 2.f - 50.f);
@@ -125,7 +135,7 @@ void CSGVoice::renderNextBlock (AudioBuffer<float> &outputBuffer, int startSampl
 
 		auto const csg_wave = unit.getWave();
 		auto const drive = calcLogModdedVal(*_smoothedParams, PID_e::DRIVE, modSources);
-		svf.filter(csg_wave * drive);
+		svf(csg_wave * drive);
 		
 		auto getFilterVal = [&](float filterSelection){
 			switch ((int)filterSelection) {
@@ -142,8 +152,9 @@ void CSGVoice::renderNextBlock (AudioBuffer<float> &outputBuffer, int startSampl
 			return val * val;
 		}();
 		
-		auto const drone = _smoothedParams->getNextValue(PID_e::DRONE);
-		
+//		auto const drone = _smoothedParams->getNextValue(PID_e::DRONE);
+		auto const drone = jlimit(0.0f, 1.0f, calcLogModdedVal(*_smoothedParams, PID_e::DRONE, modSources));
+
 		float const vcf_outL = getFilterVal(_smoothedParams->getNextValue(PID_e::TYPE_L));
 		jassert (0.0 < drive);
 		

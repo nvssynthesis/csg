@@ -102,6 +102,7 @@ inline String groupToID(GroupID_e group) {
   X(DRONE_MOD)              \
   X(RISE_MOD)               \
   X(FALL_MOD)               \
+  Y(FILTER_CHARACTER)		\
   Y(OVERSAMPLE_FACTOR)		\
   Y(FEEDBACK_CIRCUIT)		\
   Y(OUTPUT_GAIN)
@@ -253,6 +254,7 @@ auto bitsStringToValue = [](const String& text) -> float
 };
 //=============================================================================================================================
 const juce::StringArray oversampleLabels { "1x", "2x", "4x", "8x", "16x", "32x", "64x", "128x"};
+const juce::StringArray filterCharacterLabels { "chaotic", "vanilla" };
 const juce::StringArray feedbackCircuitLabels {
 	"sensible",
 	"compensating",
@@ -296,12 +298,25 @@ private:
 									 .withAutomatable(true)
 									 );
 	}
-	static std::unique_ptr<API> makeFeedbackCircuitSelectionParameter(PID_e pid) {
+	static std::unique_ptr<API> makeFeedbackCircuitSelectionParameter() {
+		auto const pid = PID_e::FEEDBACK_CIRCUIT;
 		return std::make_unique<API>( JPID{paramToID(pid), 1 }, paramToName(pid), 0, 3, 0,
 									 juce::AudioParameterIntAttributes()
 									 .withStringFromValueFunction([](int value, int maximumStringLength) {
 										 jassert ((0 <= value) && (value < feedbackCircuitLabels.size()));
 										 return feedbackCircuitLabels[value];
+									 })
+									 .withAutomatable(true)
+									 );
+		
+	}
+	static std::unique_ptr<API> makeFilterCharacterSelectionParameter() {
+		auto const pid = PID_e::FILTER_CHARACTER;
+		return std::make_unique<API>( JPID{paramToID(pid), 1 }, paramToName(pid), 0, 1, 0,
+									 juce::AudioParameterIntAttributes()
+									 .withStringFromValueFunction([](int value, int maximumStringLength) {
+										 jassert ((0 <= value) && (value < filterCharacterLabels.size()));
+										 return filterCharacterLabels[value];
 									 })
 									 .withAutomatable(true)
 									 );
@@ -350,22 +365,22 @@ private:
 									 juce::AudioParameterFloatAttributes()
 									 .withStringFromValueFunction([](float value, int maximumStringLength) -> juce::String {	// stringFromFloat
 										 float thresh = 0.05;
-										 if (value < thresh)					{ return "Sine";		}
-										 else if (value < (1.0 - thresh)) 		{ return "Sin/Saw"; 	}
-										 else if (value < (1.0 + thresh)) 		{ return "Saw"; 		}
-										 else if (value < (2.0 - thresh)) 		{ return "Saw/Square"; 	}
+										 if (value < thresh)					{ return "Triangle";	}
+										 else if (value < (1.0 - thresh)) 		{ return "Tri/Saw"; 	}
+										 else if (value < (1.0 + thresh)) 		{ return "Sawtooth"; 	}
+										 else if (value < (2.0 - thresh)) 		{ return "Saw/Sqr"; 	}
 										 else if (value < (2.0 + thresh)) 		{ return "Square"; 		}
-										 else if (value < (3.0 - thresh))		{ return "Square/Tri"; 	}
-										 else if (value < (3.0 + thresh))		{ return "Triangle"; 	}
+										 else if (value < (3.0 - thresh))		{ return "Sqr/Sin"; 	}
+										 else if (value < (3.0 + thresh))		{ return "Sinusoid"; 	}
 										 return juce::String(value);
 									 })
 									 .withValueFromStringFunction([](const String &text) -> float 	// floatFromString
 									 {
 										 if (text.isEmpty())      return 0.f;
-										 else if (text.startsWithIgnoreCase("si")) { return 0.f; }
+										 else if (text.startsWithIgnoreCase("tr")) { return 0.f; }
 										 else if (text.startsWithIgnoreCase("sa")) { return 1.f; }
 										 else if (text.startsWithIgnoreCase("sq")) { return 2.f; }
-										 else if (text.startsWithIgnoreCase("tr")) { return 3.f; }
+										 else if (text.startsWithIgnoreCase("si")) { return 3.f; }
 										 else 	 {return text.getFloatValue();}
 									 })
 									 .withAutomatable(true)
@@ -390,7 +405,7 @@ private:
 																									  );
 		std::unique_ptr<AudioParameterGroup> filterParameterGroup = std::make_unique<AudioParameterGroup>(
 												groupToID(GroupID_e::FILTER), 	groupToName(GroupID_e::FILTER), "|",
-												makeAPF2(PID_e::DRIVE, 		makeGainRange(-60.f, 12.f), 1.0f, valueToString_dB, dB_stringToValue),
+												makeAPF2(PID_e::DRIVE, 		makeGainRange(-60.f, 24.f), 1.0f, valueToString_dB, dB_stringToValue),
 											    makeFrequencyParameter(PID_e::CUTOFF, 20.f, 22000.f, 12000.f),
 												makeAPF(PID_e::RESO, 	NormRangeF(0.f, 5.f), 1.f ),
 												makeFilterTypesParameter(PID_e::TYPE_L),
@@ -461,12 +476,14 @@ private:
 	static std::unique_ptr<AudioParameterGroup> makeUtilityParamsGroup() {
 		return std::make_unique<AudioParameterGroup>(
 							 groupToID(GroupID_e::UTILITY), groupToName(GroupID_e::UTILITY), "|",
-							 makeFeedbackCircuitSelectionParameter(PID_e::FEEDBACK_CIRCUIT),
+							 makeFeedbackCircuitSelectionParameter(),
 							 std::make_unique<ChoiceParam>(
 									 juce::ParameterID { paramToID(PID_e::OVERSAMPLE_FACTOR),  1 },
 									 paramToName(PID_e::OVERSAMPLE_FACTOR),
 									 oversampleLabels,
 									 /*default index is 4x*/ 2 ),
+							 makeFilterCharacterSelectionParameter(),
+
 							 std::make_unique<APF>(JPID{ paramToID(PID_e::OUTPUT_GAIN), 1 }, paramToName(PID_e::OUTPUT_GAIN),
 												   makeGainRange(-60.0f, 0.0f),
 												   0.5f,

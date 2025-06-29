@@ -32,7 +32,9 @@ inline float calcLinearRange(nvs::param::SmoothedParamsManager const &smoothed, 
 }
 inline float calcLinearModdedVal(nvs::param::SmoothedParamsManager &smoothed, param::PID_e pid, std::vector<float const*> modSources){
 	auto const modVal = *modSources[0];
-	return smoothed.getNextValue(pid) + modVal * smoothed.getNextValue(basePIDToModPID(pid)) * calcLinearRange(smoothed, pid);
+	auto const retval = smoothed.getNextValue(pid) + modVal * smoothed.getNextValue(basePIDToModPID(pid)) * calcLinearRange(smoothed, pid);
+	jassert (retval == retval);
+	return retval;
 }
 inline float calcLogModdedVal(nvs::param::SmoothedParamsManager &smoothed, param::PID_e pid, std::vector<float const*> modSources){
 	auto const modVal = *modSources[0];
@@ -41,6 +43,7 @@ inline float calcLogModdedVal(nvs::param::SmoothedParamsManager &smoothed, param
 	
 	auto baseValSemitones = hertzToMidi(baseValHz);
 	auto modValSemitones = jmap(modAmtVal, -1.f, 1.f, -64.f, 64.f);
+	
 	auto finalValSemitones = baseValSemitones + modValSemitones;
 	return midiToHertz(finalValSemitones);
 }

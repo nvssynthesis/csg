@@ -65,9 +65,22 @@ CsgAudioProcessorEditor::CsgAudioProcessorEditor (CsgAudioProcessor& p)
 						auto acb = std::make_unique<AttachedComboBox>(apvts, *a);
 						
 						acb->_comboBox.addItemList (nvs::param::feedbackCircuitLabels, /*item IDs start at 1*/ 1);
-						int idx = *apvts.getRawParameterValue(nvs::param::paramToID(nvs::param::PID_e::FEEDBACK_CIRCUIT));
+						int const idx = *apvts.getRawParameterValue(nvs::param::paramToID(nvs::param::PID_e::FEEDBACK_CIRCUIT));
 						acb->_comboBox.setSelectedItemIndex (idx, juce::dontSendNotification);
 						acb->_comboBox.setTooltip ("Selects the feedback circuit type for MEMORY");
+						acb->setName(pName);
+						comboBoxes.push_back(std::move(acb));
+					}
+				}
+				else if (pName.contains(nvs::param::paramToName(nvs::param::PID_e::FILTER_CHARACTER)))
+				{
+					if (auto const *a = dynamic_cast<juce::AudioParameterInt const *>(param)){
+						auto acb = std::make_unique<AttachedComboBox>(apvts, *a);
+						
+						acb->_comboBox.addItemList(nvs::param::filterCharacterLabels, /*start at*/ 1);
+						int const idx = *apvts.getRawParameterValue(nvs::param::paramToID(nvs::param::PID_e::FILTER_CHARACTER));
+						acb->_comboBox.setSelectedItemIndex(idx, juce::dontSendNotification);
+						acb->_comboBox.setTooltip("Selects the state variable filter character");
 						acb->setName(pName);
 						comboBoxes.push_back(std::move(acb));
 					}
@@ -84,12 +97,8 @@ CsgAudioProcessorEditor::CsgAudioProcessorEditor (CsgAudioProcessor& p)
 	}
 	
 	std::vector<juce::String> disabledModulationParams = {
-//		nvs::param::paramToName(nvs::param::PID_e::DRIVE),
 		nvs::param::paramToName(nvs::param::PID_e::TYPE_L),
 		nvs::param::paramToName(nvs::param::PID_e::TYPE_R),
-		nvs::param::paramToName(nvs::param::PID_e::LFO_RATE),
-		nvs::param::paramToName(nvs::param::PID_e::LFO_WAVE),
-		nvs::param::paramToName(nvs::param::PID_e::DRONE),
 		nvs::param::paramToName(nvs::param::PID_e::RISE),
 		nvs::param::paramToName(nvs::param::PID_e::FALL)
 	};
@@ -294,15 +303,47 @@ void CsgAudioProcessorEditor::resized()
 												x_offset, subArea.getHeight());
 	nameAndVersionBounds.setCentre(nameAndVersionBounds.getCentreX(), subArea.getCentreY());
 	
-	
-	for (auto &cb : comboBoxes){
-		if (cb->getName().contains(nvs::param::paramToName(nvs::param::PID_e::OVERSAMPLE_FACTOR))){
-			// place oversampling combo box
-			cb->setBounds(visitSiteButton.getRight() + 10, subArea.getY(),
+
+	std::optional<AttachedComboBox* const> oversampleBoxOpt = [this, subArea]() -> std::optional<AttachedComboBox* const>{
+		auto it = std::find_if(comboBoxes.begin(), comboBoxes.end(),
+			[](const std::unique_ptr<AttachedComboBox>& cb) {
+				return cb->getName().contains(nvs::param::paramToName(nvs::param::PID_e::FILTER_CHARACTER));
+			});
+		
+		if (it != comboBoxes.end()) {
+			AttachedComboBox* const box = it->get();
+			box->setBounds(visitSiteButton.getRight() + 10, subArea.getY(),
+									 80, subArea.getHeight());
+			return box;
+		}
+		return std::nullopt;
+	}();
+	if (oversampleBoxOpt.has_value())
+	{
+		auto const osBox = oversampleBoxOpt.value();
+		
+		auto it = std::find_if(comboBoxes.begin(), comboBoxes.end(),
+			[](const std::unique_ptr<AttachedComboBox>& cb) {
+				return cb->getName().contains(nvs::param::paramToName(nvs::param::PID_e::OVERSAMPLE_FACTOR));
+			});
+		
+		if (it != comboBoxes.end()) {
+			AttachedComboBox* const box = it->get();
+			box->setBounds(osBox->getRight() + 10, subArea.getY(),
 									 80, subArea.getHeight());
 		}
-		else if (cb->getName().contains(nvs::param::paramToName(nvs::param::PID_e::FEEDBACK_CIRCUIT))){
-			// place oversampling combo box
+	}
+
+	{
+//		else if (cb->getName().contains(nvs::param::paramToName(nvs::param::PID_e::FEEDBACK_CIRCUIT))){
+		auto it = std::find_if(comboBoxes.begin(), comboBoxes.end(),
+			[](const std::unique_ptr<AttachedComboBox>& cb) {
+				return cb->getName().contains(nvs::param::paramToName(nvs::param::PID_e::FEEDBACK_CIRCUIT));
+			});
+		
+		if (it != comboBoxes.end()) {
+			AttachedComboBox* const box = it->get();
+
 			auto const presetPanelBounds = presetPanel.getBounds();
 			auto const paramsTopLeft = paramsArea.getTopLeft();
 			
@@ -311,8 +352,9 @@ void CsgAudioProcessorEditor::resized()
 			auto const w = 100;
 			auto const h = paramsTopLeft.getY() - presetPanelBounds.getBottom() - (2*pad);
 			
-			cb->setBounds(x, y, w, h);
+			box->setBounds(x, y, w, h);
 		}
 	}
+	
 }
 
