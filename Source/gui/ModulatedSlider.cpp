@@ -35,7 +35,6 @@ _paramGroupName(paramGroupName)
 	
 	setupSlider(apvts, nvs::param::makeModID(param.getParameterID()), _modulationSlider);
 	
-	_label.setFont({"Palatino", 13.f, 0});
 	_label.setJustificationType(juce::Justification::centred);
 	_label.setColour(juce::Label::textColourId, juce::Colours::lightgrey);
 	_label.setText(_paramName, dontSendNotification);
@@ -74,7 +73,7 @@ void ModulatedSlider::resized()
 	flex.performLayout (area);
 	
 	float const labelHeight = _label.getHeight();
-	float const fontSize = juce::jlimit(8.0f, 18.0f, labelHeight * 0.6f); // 70% of label height
+	float const fontSize = juce::jlimit(8.0f, 18.0f, labelHeight * 0.6f);
 	_label.setFont({"Palatino", fontSize, 0});
 }
 }
