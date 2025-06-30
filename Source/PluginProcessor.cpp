@@ -34,16 +34,18 @@ CsgAudioProcessor::CsgAudioProcessor() :
 #endif
 
 params(*this),
-smoothedParams(params.apvts)
+sharedState(params.apvts)
 {
 	initAPVTS(params.apvts);
 	
 	presetManager = std::make_unique<nvs::service::PresetManager>(params.apvts);	// need to pass fully initialized apvts
 
+	initModParams();
+	
 	using namespace nvs::csg;
 	csgSynth.setCurrentPlaybackSampleRate(44100.f);
     csgSynth.clearVoices();
-    csgSynth.addVoice(new nvs::csg::CSGVoice(&smoothedParams));   // MONOPHONIC BEAST.
+    csgSynth.addVoice(new nvs::csg::CSGVoice(&sharedState));   // MONOPHONIC BEAST.
     csgSynth.clearSounds();
     csgSynth.addSound(new nvs::csg::CSGSound());
 }

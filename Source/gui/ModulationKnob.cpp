@@ -57,17 +57,21 @@ void ModulationKnob::showPopupMenu() {
 //	auto currentSource = static_cast<ModSource_e>(_mod_source_param.getIndex());
 	{
 		juce::PopupMenu polarityMenu;
-		polarityMenu.addItem(1, "Bipolar", true, _polarity_param.getCurrentChoiceName().contains("Bipolar"));
-		polarityMenu.addItem(2, "Unipolar", true, _polarity_param.getCurrentChoiceName().contains("Unipolar"));
+		for (int i = 0; i < nvs::param::PolarityLabels.size(); ++i){
+			juce::String const &label = nvs::param::PolarityLabels[i];
+			polarityMenu.addItem(i+1, label, true, _polarity_param.getCurrentChoiceName().contains(label));
+		}
 		menu.addSubMenu("Polarity", polarityMenu);
 	}
 	menu.addSeparator();
 	{
 		juce::PopupMenu sourceMenu;
-		sourceMenu.addItem(10, "LFO", true, _mod_source_param.getCurrentChoiceName().contains("LFO"));
-		sourceMenu.addItem(11, "ASR", true, _mod_source_param.getCurrentChoiceName().contains("ASR"));
-		sourceMenu.addItem(12, "Mixer1", false, _mod_source_param.getCurrentChoiceName().contains("Mixer1"));
-		sourceMenu.addItem(13, "Mixer2", false, _mod_source_param.getCurrentChoiceName().contains("Mixer2"));
+		for (int i = 0; i < nvs::param::ModSourceLabels.size(); ++i){
+			juce::String const &label = nvs::param::ModSourceLabels[i];
+			
+			bool const active = !label.contains("Mixer");	// mixer item not implemented yet
+			sourceMenu.addItem(i+10, label, active, _mod_source_param.getCurrentChoiceName().contains(label));
+		}
 		menu.addSubMenu("ModSource", sourceMenu);
 	}
 	

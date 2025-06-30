@@ -63,10 +63,31 @@ public:
 	nvs::service::PresetManager &getPresetManager() {
 		return *presetManager;
 	}
+	
 private:
     Synthesiser csgSynth;
 	nvs::param::Params params;
-	nvs::param::SmoothedParamsManager smoothedParams;
+	nvs::csg::SharedState sharedState;
+	
+	void initModParams()
+	{
+		auto const &apvts = params.apvts;
+		
+		auto const& modulatableParamIDs = nvs::param::getModulatableParamIDs();
+		// Do this once during initialization
+		for (auto pid : modulatableParamIDs) // however you iterate your PIDs
+		{
+			juce::String const pidStr = nvs::param::paramToID(pid);
+			
+			auto const polarityId = nvs::param::makeModPolarityID(pidStr);
+			sharedState.polarityParams[pid] = static_cast<juce::AudioParameterChoice*>(
+				apvts.getParameter(polarityId));
+			
+			auto const modSourceId = nvs::param::makeModSourceID(pidStr);
+			sharedState.modSourceParams[pid] = static_cast<juce::AudioParameterChoice*>(
+				apvts.getParameter(modSourceId));
+		}
+	}
 
 	//==============================================================================
 	std::unique_ptr<nvs::service::PresetManager> presetManager;

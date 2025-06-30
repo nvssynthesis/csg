@@ -22,7 +22,7 @@ namespace nvs::csg {
 class CSGVoice      :       public SynthesiserVoice
 {
 public:
-	explicit CSGVoice(nvs::param::SmoothedParamsManager *smoothedParams);
+	explicit CSGVoice(nvs::csg::SharedState *state);
 	bool canPlaySound (SynthesiserSound* sound) override;
 	//===========================================================================
 	void startNote (int midiNoteNumber, float velocity, SynthesiserSound* sound, int currentPitchWheelPosition) override;
@@ -43,7 +43,7 @@ public:
 private:
 	double velocityLevel;
 	
-	nvs::param::SmoothedParamsManager *_smoothedParams;
+	nvs::csg::SharedState *_sstate;
 	
 	nvs::csg::CSG unit;
 	nvs::lfo::simple_lfo<float> lfo;
@@ -53,8 +53,7 @@ private:
 	bool sampleRateValid() const;
 	
 	float gate;
-	float lfo_out;	// currently used to give float*const to CSG::addModSource
-	std::vector<float const*> modSources {&lfo_out};
+	float lfo_out{0.f}, asr_out{0.f};
 };
 
 }	//	namespace nvs::csg

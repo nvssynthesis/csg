@@ -12,12 +12,14 @@ Author:  Nicholas Solem
 
 namespace nvs::csg {
 
-CSGVoice::CSGVoice(nvs::param::SmoothedParamsManager *smoothedParams)
-:	_smoothedParams(smoothedParams),
-	unit(_smoothedParams)
+CSGVoice::CSGVoice(nvs::csg::SharedState *state)
+:	_sstate(state)
+,	unit(state)
 {
 	svf.set_oversample(4);
-	unit.addModSource(&lfo_out);
+	
+	state->modSources.push_back(&lfo_out);
+	state->modSources.push_back(&asr_out);
 }
 bool CSGVoice::canPlaySound (SynthesiserSound* sound)
 {
@@ -80,7 +82,7 @@ bool CSGVoice::sampleRateValid() const {
 //===========================================================================
 void CSGVoice::prepareToPlay(double sampleRate, int samplesPerBlock) {
 	setCurrentPlaybackSampleRate(sampleRate);
-	_smoothedParams->reset(sampleRate, samplesPerBlock);
+	_sstate->smoothedParamsManager.reset(sampleRate, samplesPerBlock);
 }
 
 unsigned int powi2(int exp) {
@@ -99,42 +101,45 @@ static const std::map<int, nvs::filters::character_e> filterCharacterMap {
 void CSGVoice::renderNextBlock (AudioBuffer<float> &outputBuffer, int startSample, int numSamples)
 {
 	jassert (sampleRateValid());
-	using PID_e = nvs::param::PID_e;
+	jassert (_sstate != nullptr);
+	
+	using param_e = nvs::param::parameter_e;
 
-	unsigned int const oversampleFactor = powi2(_smoothedParams->_apvts.getRawParameterValue(param::paramToID( PID_e::OVERSAMPLE_FACTOR ))->load());
+	auto &smoothedParams = _sstate->smoothedParamsManager;
+	
+	unsigned int const oversampleFactor = powi2(smoothedParams._apvts.getRawParameterValue(param::paramToID( param_e::OVERSAMPLE_FACTOR ))->load());
 	setSVFOversampling(oversampleFactor);
 	
 	env.setBlockSize(numSamples);
 	svf.setBlockSize(numSamples);
-	svf.setCharacter(filterCharacterMap.at(_smoothedParams->_apvts.getRawParameterValue(param::paramToID(PID_e::FILTER_CHARACTER))->load()));
+	svf.setCharacter(filterCharacterMap.at(smoothedParams._apvts.getRawParameterValue(param::paramToID(param_e::FILTER_CHARACTER))->load()));
 	
-	_smoothedParams->updateTargets();
+	smoothedParams.updateTargets();
 	
-	jassert(_smoothedParams);
 	
 	for (int sample = 0; sample < numSamples; ++sample)
 	{
-		jassert (modSources[0] == modSources[0]);
-		lfo._freq = calcLogModdedVal(*_smoothedParams, PID_e::LFO_RATE, modSources);
+		lfo._freq = calcLogModdedVal(*_sstate, param_e::LFO_RATE);
 		lfo.phasor();   // increment internal phase of LFO
-		auto const lfo_wave_idx = calcLinearModdedVal(*_smoothedParams, PID_e::LFO_WAVE, modSources);
+		auto const lfo_wave_idx = calcLinearModdedVal(*_sstate, param_e::LFO_WAVE);
 
 //		lfo_out = lfo.multi(fmod(lfo_wave_idx, 4.0));
 		lfo_out = lfo.multi(lfo_wave_idx);
 
 		using namespace nvs::memoryless;
 		
-		float const finalCutoff = clamp<float>( calcLogModdedVal(*_smoothedParams, PID_e::CUTOFF, modSources), 1.f, (float)getSampleRate() / 2.f - 50.f);
+		float const finalCutoff = clamp<float>( calcLogModdedVal(*_sstate, param_e::CUTOFF), 1.f, (float)getSampleRate() / 2.f - 50.f);
 		svf.setCutoff(finalCutoff);
 		
-		auto const res = jlimit(0.0f, 6.0f, 5.0f * lfo_out * _smoothedParams->getNextValue(PID_e::RESO_MOD) + _smoothedParams->getNextValue(PID_e::RESO));
+#pragma message ("resonance param must conform to mod matrix logic too")
+		auto const res = jlimit(0.0f, 6.0f, 5.0f * lfo_out * smoothedParams.getNextValue(param_e::RESO_MOD) + smoothedParams.getNextValue(param_e::RESO));
 		svf.setResonance(res);
 		
-		env.setRise(_smoothedParams->getNextValue(PID_e::RISE));
-		env.setFall(_smoothedParams->getNextValue(PID_e::FALL));
+		env.setRise(smoothedParams.getNextValue(param_e::RISE));
+		env.setFall(smoothedParams.getNextValue(param_e::FALL));
 
 		auto const csg_wave = unit.getWave();
-		auto const drive = calcLogModdedVal(*_smoothedParams, PID_e::DRIVE, modSources);
+		auto const drive = calcLogModdedVal(*_sstate, param_e::DRIVE);
 		svf(csg_wave * drive);
 		
 		auto getFilterVal = [&](float filterSelection){
@@ -147,15 +152,15 @@ void CSGVoice::renderNextBlock (AudioBuffer<float> &outputBuffer, int startSampl
 			}
 		};
 		
-		float const env_currentVal = [this](){
+		asr_out = [this](){
 			auto const val = env.ASR(gate);
 			return val * val;
 		}();
 		
-//		auto const drone = _smoothedParams->getNextValue(PID_e::DRONE);
-		auto const drone = jlimit(0.0f, 1.0f, calcLogModdedVal(*_smoothedParams, PID_e::DRONE, modSources));
+//		auto const drone = smoothedParams.getNextValue(param_e::DRONE);
+		auto const drone = jlimit(0.0f, 1.0f, calcLogModdedVal(*_sstate, param_e::DRONE));
 
-		float const vcf_outL = getFilterVal(_smoothedParams->getNextValue(PID_e::TYPE_L));
+		float const vcf_outL = getFilterVal(smoothedParams.getNextValue(param_e::TYPE_L));
 		jassert (0.0 < drive);
 		
 		// still need a good atan approximation
@@ -163,16 +168,16 @@ void CSGVoice::renderNextBlock (AudioBuffer<float> &outputBuffer, int startSampl
 //		auto const drive_compensate = 10.f * std::atan(0.1f / math_impl::tanh(drive));
 		auto const drive_compensate = 10.f * std::atan(0.1f / std::tanh(drive));
 
-		auto const outGain = _smoothedParams->getNextValue(nvs::param::PID_e::OUTPUT_GAIN);
+		auto const outGain = smoothedParams.getNextValue(nvs::param::parameter_e::OUTPUT_GAIN);
 		
 		outputBuffer.addSample(0, startSample,
-							(std::atan(vcf_outL * nvs::memoryless::linterp<float>(env_currentVal, drone, drone)) * drive_compensate) * MINUS_NINE_DB * outGain);
+							(std::atan(vcf_outL * nvs::memoryless::linterp<float>(asr_out, drone, drone)) * drive_compensate) * MINUS_NINE_DB * outGain);
 		
 		if (outputBuffer.getNumChannels() > 1)
 		{
-			float const vcf_outR = getFilterVal(_smoothedParams->getNextValue(PID_e::TYPE_R));
+			float const vcf_outR = getFilterVal(smoothedParams.getNextValue(param_e::TYPE_R));
 			outputBuffer.addSample(1, startSample,
-							(std::atan(vcf_outR * nvs::memoryless::linterp<float>(env_currentVal, drone, drone)) * drive_compensate) * MINUS_NINE_DB * outGain);
+							(std::atan(vcf_outR * nvs::memoryless::linterp<float>(asr_out, drone, drone)) * drive_compensate) * MINUS_NINE_DB * outGain);
 		}
 		
 		++startSample;

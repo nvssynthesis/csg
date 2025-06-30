@@ -16,7 +16,7 @@
 CsgAudioProcessorEditor::CsgAudioProcessorEditor (CsgAudioProcessor& p)
 : 	AudioProcessorEditor (&p), processor (p)
 ,	csgLAF()
-,	tooltipWindow (this, 500)      // hover‐delay = 500 ms
+,	tooltipWindow (this, 100)      // hover‐delay = 500 ms
 ,	presetPanel(processor.getPresetManager())
 {
 	juce::AudioProcessorValueTreeState &apvts = processor.getAPVTS();
@@ -47,7 +47,7 @@ CsgAudioProcessorEditor::CsgAudioProcessorEditor (CsgAudioProcessor& p)
 			for (auto const *param : paramGroup->getParameters(false))
 			{
 				auto const pName = param->getName(20);
-				if (pName.contains(nvs::param::paramToName(nvs::param::PID_e::OVERSAMPLE_FACTOR)))
+				if (pName.contains(nvs::param::paramToName(nvs::param::parameter_e::OVERSAMPLE_FACTOR)))
 				{
 					if (auto const *a = dynamic_cast<juce::AudioParameterChoice const*>(param)){
 						auto acb = std::make_unique<AttachedComboBox>(apvts, *a);
@@ -59,26 +59,26 @@ CsgAudioProcessorEditor::CsgAudioProcessorEditor (CsgAudioProcessor& p)
 						comboBoxes.push_back(std::move(acb));
 					}
 				}
-				else if (pName.contains(nvs::param::paramToName(nvs::param::PID_e::FEEDBACK_CIRCUIT)))
+				else if (pName.contains(nvs::param::paramToName(nvs::param::parameter_e::FEEDBACK_CIRCUIT)))
 				{
 					if (auto const *a = dynamic_cast<juce::AudioParameterInt const*>(param)){
 						auto acb = std::make_unique<AttachedComboBox>(apvts, *a);
 						
 						acb->_comboBox.addItemList (nvs::param::feedbackCircuitLabels, /*item IDs start at 1*/ 1);
-						int const idx = *apvts.getRawParameterValue(nvs::param::paramToID(nvs::param::PID_e::FEEDBACK_CIRCUIT));
+						int const idx = *apvts.getRawParameterValue(nvs::param::paramToID(nvs::param::parameter_e::FEEDBACK_CIRCUIT));
 						acb->_comboBox.setSelectedItemIndex (idx, juce::dontSendNotification);
 						acb->_comboBox.setTooltip ("Selects the feedback circuit type for MEMORY");
 						acb->setName(pName);
 						comboBoxes.push_back(std::move(acb));
 					}
 				}
-				else if (pName.contains(nvs::param::paramToName(nvs::param::PID_e::FILTER_CHARACTER)))
+				else if (pName.contains(nvs::param::paramToName(nvs::param::parameter_e::FILTER_CHARACTER)))
 				{
 					if (auto const *a = dynamic_cast<juce::AudioParameterInt const *>(param)){
 						auto acb = std::make_unique<AttachedComboBox>(apvts, *a);
 						
 						acb->_comboBox.addItemList(nvs::param::filterCharacterLabels, /*start at*/ 1);
-						int const idx = *apvts.getRawParameterValue(nvs::param::paramToID(nvs::param::PID_e::FILTER_CHARACTER));
+						int const idx = *apvts.getRawParameterValue(nvs::param::paramToID(nvs::param::parameter_e::FILTER_CHARACTER));
 						acb->_comboBox.setSelectedItemIndex(idx, juce::dontSendNotification);
 						acb->_comboBox.setTooltip("Selects the state variable filter character");
 						acb->setName(pName);
@@ -97,10 +97,10 @@ CsgAudioProcessorEditor::CsgAudioProcessorEditor (CsgAudioProcessor& p)
 	}
 	
 	std::vector<juce::String> disabledModulationParams = {
-		nvs::param::paramToName(nvs::param::PID_e::TYPE_L),
-		nvs::param::paramToName(nvs::param::PID_e::TYPE_R),
-		nvs::param::paramToName(nvs::param::PID_e::RISE),
-		nvs::param::paramToName(nvs::param::PID_e::FALL)
+		nvs::param::paramToName(nvs::param::parameter_e::TYPE_L),
+		nvs::param::paramToName(nvs::param::parameter_e::TYPE_R),
+		nvs::param::paramToName(nvs::param::parameter_e::RISE),
+		nvs::param::paramToName(nvs::param::parameter_e::FALL)
 	};
 	
 	// make them visible
@@ -144,7 +144,7 @@ CsgAudioProcessorEditor::CsgAudioProcessorEditor (CsgAudioProcessor& p)
 
 	auto const ratio = bg_w / bg_h;
 	getConstrainer()->setFixedAspectRatio(ratio);
-	getConstrainer()->setMinimumWidth(628);
+	getConstrainer()->setMinimumWidth(712);
 
 	setSize (bg_w, bg_h);
 }
@@ -246,7 +246,7 @@ void CsgAudioProcessorEditor::resized()
 
 				juce::FlexBox flex;
 				flex.flexDirection  = juce::FlexBox::Direction::row;
-				flex.justifyContent = juce::FlexBox::JustifyContent::flexStart;
+				flex.justifyContent = juce::FlexBox::JustifyContent::center;
 				flex.alignItems     = juce::FlexBox::AlignItems::stretch;
 				flex.flexWrap       = juce::FlexBox::Wrap::noWrap;
 
@@ -263,7 +263,7 @@ void CsgAudioProcessorEditor::resized()
 					if (slider->getParamName().contains ("TYPE")) {	// filter type selector slider
 						flex.items.add ( juce::FlexItem (*slider)
 											 .withFlex     (1.0f, 10.0f)
-											 .withMinWidth (skinnyWidth * 0.9f)
+											 .withMinWidth (skinnyWidth * 1.0f)
 											 .withMaxWidth (skinnyWidth * 1.5f )
 											 .withMargin(juce::FlexItem::Margin(0, sliderPadding* 0.2f, 0, sliderPadding * 0.2f))
 										);
@@ -307,7 +307,7 @@ void CsgAudioProcessorEditor::resized()
 	std::optional<AttachedComboBox* const> oversampleBoxOpt = [this, subArea]() -> std::optional<AttachedComboBox* const>{
 		auto it = std::find_if(comboBoxes.begin(), comboBoxes.end(),
 			[](const std::unique_ptr<AttachedComboBox>& cb) {
-				return cb->getName().contains(nvs::param::paramToName(nvs::param::PID_e::FILTER_CHARACTER));
+				return cb->getName().contains(nvs::param::paramToName(nvs::param::parameter_e::FILTER_CHARACTER));
 			});
 		
 		if (it != comboBoxes.end()) {
@@ -324,7 +324,7 @@ void CsgAudioProcessorEditor::resized()
 		
 		auto it = std::find_if(comboBoxes.begin(), comboBoxes.end(),
 			[](const std::unique_ptr<AttachedComboBox>& cb) {
-				return cb->getName().contains(nvs::param::paramToName(nvs::param::PID_e::OVERSAMPLE_FACTOR));
+				return cb->getName().contains(nvs::param::paramToName(nvs::param::parameter_e::OVERSAMPLE_FACTOR));
 			});
 		
 		if (it != comboBoxes.end()) {
@@ -338,7 +338,7 @@ void CsgAudioProcessorEditor::resized()
 //		else if (cb->getName().contains(nvs::param::paramToName(nvs::param::PID_e::FEEDBACK_CIRCUIT))){
 		auto it = std::find_if(comboBoxes.begin(), comboBoxes.end(),
 			[](const std::unique_ptr<AttachedComboBox>& cb) {
-				return cb->getName().contains(nvs::param::paramToName(nvs::param::PID_e::FEEDBACK_CIRCUIT));
+				return cb->getName().contains(nvs::param::paramToName(nvs::param::parameter_e::FEEDBACK_CIRCUIT));
 			});
 		
 		if (it != comboBoxes.end()) {
