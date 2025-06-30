@@ -23,6 +23,7 @@ RotaryKnob::RotaryKnob(juce::AudioProcessorValueTreeState &apvts,
 	valueLabel->setColour(juce::Label::backgroundColourId, juce::Colours::transparentBlack);
 	valueLabel->setFont(juce::Font(12.0f));
 	valueLabel->setVisible(false);
+	valueLabel->setInterceptsMouseClicks(false, false);
 	
 	setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
 	setTextBoxStyle(juce::Slider::NoTextBox, false, 15, 15);
