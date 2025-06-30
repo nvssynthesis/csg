@@ -21,7 +21,7 @@ ModulatedSlider::ModulatedSlider(juce::AudioProcessorValueTreeState &apvts,
 :
 _baseSlider(),
 _baseAttachment(apvts, param.getParameterID(), _baseSlider),
-_modKnob(apvts, *(apvts.getParameter( nvs::param::makeModID(param.getParameterID()))) ),
+_modKnob(apvts, param.getParameterID()),
 _modulationAttachment(apvts, nvs::param::makeModID(param.getParameterID()), _modKnob),
 _paramName(param.getName(20)),
 _paramGroupName(paramGroupName)

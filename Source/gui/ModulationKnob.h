@@ -16,26 +16,22 @@ class ModulationKnob	:	public RotaryKnob
 {
 public:
 	ModulationKnob(juce::AudioProcessorValueTreeState &apvts,
-			   juce::RangedAudioParameter const &param);
+			   juce::String const &parameterID);
 	
 	void mouseDown(const juce::MouseEvent& event) override;
 	
 	using Polarity_e = nvs::modulation::Polarity_e;
 	using ModSource_e = nvs::modulation::Source_e;
+	using ChoiceParam = juce::AudioParameterChoice;
 
-	std::function<void(Polarity_e)> onPolarityChanged;
-	std::function<void(ModSource_e)> onModSourceChanged;
-	
-	Polarity_e getPolarity() const { return _polarity; }
-	void setPolarity(Polarity_e polarity) { _polarity = polarity; }
-	
-	ModSource_e getModSource() const { return _modSource; }
-	void setModSource(ModSource_e source) { _modSource = source; }
-	
 private:
-	Polarity_e _polarity { Polarity_e::Bipolar };
-	ModSource_e _modSource { ModSource_e::LFO };
+	juce::AudioProcessorValueTreeState& _apvts;  // Keep reference to APVTS
+	juce::String _polarity_param_id;             // Store the parameter IDs
+	juce::String _mod_source_param_id;
 	
+	ChoiceParam const &_polarity_param;
+	ChoiceParam const &_mod_source_param;
+
 	
 	void showPopupMenu();
 	void handleMenuResult(int result);

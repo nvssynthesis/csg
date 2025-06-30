@@ -9,10 +9,17 @@
 */
 
 #include "ModulationKnob.h"
+#include "../params.h"
+
 
 ModulationKnob::ModulationKnob(juce::AudioProcessorValueTreeState &apvts,
-		   juce::RangedAudioParameter const &param)
-:	RotaryKnob(apvts, param)
+		   juce::String const &parameterID)
+:	RotaryKnob(apvts, *(apvts.getParameter(nvs::param::makeModID(parameterID))))
+,	_apvts(apvts)
+,	_polarity_param_id(nvs::param::makeModPolarityID(parameterID))
+,	_mod_source_param_id(nvs::param::makeModSourceID(parameterID))
+,	_polarity_param( *dynamic_cast<ChoiceParam*>(apvts.getParameter(_polarity_param_id)) )
+,	_mod_source_param( *dynamic_cast<ChoiceParam*>(apvts.getParameter(_mod_source_param_id)) )
 {}
 
 void ModulationKnob:: mouseDown(const juce::MouseEvent& event) {
@@ -22,24 +29,45 @@ void ModulationKnob:: mouseDown(const juce::MouseEvent& event) {
 	}
 	RotaryKnob::mouseDown(event);
 }
-	
+
+
+void ModulationKnob::handleMenuResult(int result)
+{
+	if (result == 1) // Bipolar
+	{
+		_apvts.getParameterAsValue(_polarity_param_id).setValue(static_cast<int>(Polarity_e::Bipolar));
+	}
+	else if (result == 2) // Unipolar
+	{
+		_apvts.getParameterAsValue(_polarity_param_id).setValue(static_cast<int>(Polarity_e::Unipolar));
+	}
+	else if (result == 10) // LFO
+	{
+		_apvts.getParameterAsValue(_mod_source_param_id).setValue(static_cast<int>(ModSource_e::LFO));
+	}
+	else if (result == 11) // ASR envelope
+	{
+		_apvts.getParameterAsValue(_mod_source_param_id).setValue(static_cast<int>(ModSource_e::ASR));
+	}
+}
 
 void ModulationKnob::showPopupMenu() {
 	juce::PopupMenu menu;
-
+//	auto currentPolarity = static_cast<Polarity_e>(_polarity_param.getIndex());
+//	auto currentSource = static_cast<ModSource_e>(_mod_source_param.getIndex());
 	{
 		juce::PopupMenu polarityMenu;
-		polarityMenu.addItem(1, "Bipolar", true, _polarity == Polarity_e::Bipolar);
-		polarityMenu.addItem(2, "Unipolar", true, _polarity == Polarity_e::Unipolar);
+		polarityMenu.addItem(1, "Bipolar", true, _polarity_param.getCurrentChoiceName().contains("Bipolar"));
+		polarityMenu.addItem(2, "Unipolar", true, _polarity_param.getCurrentChoiceName().contains("Unipolar"));
 		menu.addSubMenu("Polarity", polarityMenu);
 	}
 	menu.addSeparator();
 	{
 		juce::PopupMenu sourceMenu;
-		sourceMenu.addItem(10, "LFO", true, _modSource == ModSource_e::LFO);
-		sourceMenu.addItem(11, "ASR", true, _modSource == ModSource_e::ASR);
-		sourceMenu.addItem(12, "Mixer1", false, _modSource == ModSource_e::Mixer1);
-		sourceMenu.addItem(13, "Mixer2", false, _modSource == ModSource_e::Mixer2);
+		sourceMenu.addItem(10, "LFO", true, _mod_source_param.getCurrentChoiceName().contains("LFO"));
+		sourceMenu.addItem(11, "ASR", true, _mod_source_param.getCurrentChoiceName().contains("ASR"));
+		sourceMenu.addItem(12, "Mixer1", false, _mod_source_param.getCurrentChoiceName().contains("Mixer1"));
+		sourceMenu.addItem(13, "Mixer2", false, _mod_source_param.getCurrentChoiceName().contains("Mixer2"));
 		menu.addSubMenu("ModSource", sourceMenu);
 	}
 	
@@ -49,32 +77,4 @@ void ModulationKnob::showPopupMenu() {
 					   {
 						   handleMenuResult(result);
 					   });
-}
-
-void ModulationKnob::handleMenuResult(int result)
-{
-	if (result == 1) // Bipolar
-	{
-		setPolarity(Polarity_e::Bipolar);
-		if (onPolarityChanged)
-			onPolarityChanged(Polarity_e::Bipolar);
-	}
-	else if (result == 2) // Unipolar
-	{
-		setPolarity(Polarity_e::Unipolar);
-		if (onPolarityChanged)
-			onPolarityChanged(Polarity_e::Unipolar);
-	}
-	else if (result == 10) // LFO
-	{
-		setModSource(ModSource_e::LFO);
-		if (onModSourceChanged)
-			onModSourceChanged(ModSource_e::LFO);
-	}
-	else if (result == 11) // Envelope
-	{
-		setModSource(ModSource_e::ASR);
-		if (onModSourceChanged)
-			onModSourceChanged(ModSource_e::ASR);
-	}
 }

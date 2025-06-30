@@ -64,44 +64,82 @@ inline String groupToID(GroupID_e group) {
 }
 
 #define PARAM_LIST          \
-  X(PITCH)					\
-  X(SELF_FM)                \
-  X(MEMORY)                 \
-  X(FM_SMOOTH)              \
-  X(FM_DEGRADE)             \
-  X(PM_AMOUNT)              \
-  X(PM_TAME)                \
-  X(PM_SHAPE)               \
-  X(PM_DEGRADE)             \
-  X(DRIVE)					\
-  X(CUTOFF)                 \
-  X(RESO)              		\
-  X(TYPE_L)  		        \
-  X(TYPE_R) 		        \
-  X(LFO_RATE)               \
-  X(LFO_WAVE)               \
-  X(DRONE)                  \
-  X(RISE)                   \
-  X(FALL)                   \
-  X(PITCH_MOD)				\
-  X(SELF_FM_MOD)            \
-  X(MEMORY_MOD)             \
-  X(FM_SMOOTH_MOD)          \
-  X(FM_DEGRADE_MOD)         \
-  X(PM_AMOUNT_MOD)          \
-  X(PM_TAME_MOD)            \
-  X(PM_SHAPE_MOD)           \
-  X(PM_DEGRADE_MOD)         \
-  X(DRIVE_MOD)				\
-  X(CUTOFF_MOD)             \
-  X(RESO_MOD)          		\
-  X(TYPE_L_MOD)      		\
-  X(TYPE_R_MOD)      		\
-  X(LFO_RATE_MOD)           \
-  X(LFO_WAVE_MOD)           \
-  X(DRONE_MOD)              \
-  X(RISE_MOD)               \
-  X(FALL_MOD)               \
+	X(PITCH)			\
+	X(SELF_FM)			\
+	X(MEMORY)           \
+	X(FM_SMOOTH)        \
+	X(FM_DEGRADE)       \
+	X(PM_AMOUNT)        \
+	X(PM_TAME)          \
+	X(PM_SHAPE)         \
+	X(PM_DEGRADE)       \
+	X(DRIVE)			\
+	X(CUTOFF)           \
+	X(RESO)             \
+	X(TYPE_L)  		    \
+	X(TYPE_R) 		    \
+	X(LFO_RATE)         \
+	X(LFO_WAVE)			\
+	X(DRONE)			\
+	X(RISE)				\
+	X(FALL)				\
+	X(PITCH_MOD)			\
+	X(SELF_FM_MOD)          \
+	X(MEMORY_MOD)           \
+	X(FM_SMOOTH_MOD)        \
+	X(FM_DEGRADE_MOD)       \
+	X(PM_AMOUNT_MOD)        \
+	X(PM_TAME_MOD)          \
+	X(PM_SHAPE_MOD)         \
+	X(PM_DEGRADE_MOD)       \
+	X(DRIVE_MOD)			\
+	X(CUTOFF_MOD)           \
+	X(RESO_MOD)          	\
+	X(TYPE_L_MOD)      		\
+	X(TYPE_R_MOD)      		\
+	X(LFO_RATE_MOD)         \
+	X(LFO_WAVE_MOD)         \
+	X(DRONE_MOD)            \
+	X(RISE_MOD)             \
+	X(FALL_MOD)             \
+	X(PITCH_MOD_POLARITY)           \
+	X(SELF_FM_MOD_POLARITY)         \
+	X(MEMORY_MOD_POLARITY)          \
+	X(FM_SMOOTH_MOD_POLARITY)       \
+	X(FM_DEGRADE_MOD_POLARITY)      \
+	X(PM_AMOUNT_MOD_POLARITY)       \
+	X(PM_TAME_MOD_POLARITY)         \
+	X(PM_SHAPE_MOD_POLARITY)        \
+	X(PM_DEGRADE_MOD_POLARITY)      \
+	X(DRIVE_MOD_POLARITY)           \
+	X(CUTOFF_MOD_POLARITY)          \
+	X(RESO_MOD_POLARITY)            \
+	X(TYPE_L_MOD_POLARITY)          \
+	X(TYPE_R_MOD_POLARITY)          \
+	X(LFO_RATE_MOD_POLARITY)        \
+	X(LFO_WAVE_MOD_POLARITY)        \
+	X(DRONE_MOD_POLARITY)           \
+	X(RISE_MOD_POLARITY)            \
+	X(FALL_MOD_POLARITY)            \
+	X(PITCH_MOD_SOURCE)           \
+	X(SELF_FM_MOD_SOURCE)         \
+	X(MEMORY_MOD_SOURCE)          \
+	X(FM_SMOOTH_MOD_SOURCE)       \
+	X(FM_DEGRADE_MOD_SOURCE)      \
+	X(PM_AMOUNT_MOD_SOURCE)       \
+	X(PM_TAME_MOD_SOURCE)         \
+	X(PM_SHAPE_MOD_SOURCE)        \
+	X(PM_DEGRADE_MOD_SOURCE)      \
+	X(DRIVE_MOD_SOURCE)           \
+	X(CUTOFF_MOD_SOURCE)          \
+	X(RESO_MOD_SOURCE)            \
+	X(TYPE_L_MOD_SOURCE)          \
+	X(TYPE_R_MOD_SOURCE)          \
+	X(LFO_RATE_MOD_SOURCE)        \
+	X(LFO_WAVE_MOD_SOURCE)        \
+	X(DRONE_MOD_SOURCE)           \
+	X(RISE_MOD_SOURCE)            \
+	X(FALL_MOD_SOURCE)            \
   Y(FILTER_CHARACTER)		\
   Y(OVERSAMPLE_FACTOR)		\
   Y(FEEDBACK_CIRCUIT)		\
@@ -142,8 +180,24 @@ inline String makeModID(String paramID){
 	paramID += "_MOD";
 	return paramID;
 }
+inline String makeModPolarityID(String paramID){
+	paramID += "_MOD_POLARITY";
+	return paramID;
+}
+inline String makeModSourceID(String paramID){
+	paramID += "_MOD_SOURCE";
+	return paramID;
+}
 inline String makeModName(String paramName){
 	paramName += " MOD";
+	return paramName;
+}
+inline String makeModPolarityName(String paramName){
+	paramName += " MOD POLARITY";
+	return paramName;
+}
+inline String makeModSourceName(String paramName){
+	paramName += " MOD SOURCE";
 	return paramName;
 }
 
@@ -253,7 +307,7 @@ auto bitsStringToValue = [](const String& text) -> float
 	return std::exp2(bits);
 };
 //=============================================================================================================================
-const juce::StringArray oversampleLabels { "1x", "2x", "4x", "8x", "16x", "32x", "64x", "128x"};
+const juce::StringArray oversampleLabels { "1x", "2x", "4x", "8x", "16x", "32x", "64x", "128x" };
 const juce::StringArray filterCharacterLabels { "chaotic", "vanilla" };
 const juce::StringArray feedbackCircuitLabels {
 	"sensible",
@@ -261,6 +315,8 @@ const juce::StringArray feedbackCircuitLabels {
 	"tamed absurdity",
 	"senseless"
 };
+const StringArray PolarityLabels { "Bipolar", "Unipolar" };
+const StringArray ModSourceLabels { "LFO", "ASR", "Mixer1", "Mixer2" };
 //=============================================================================================================================
 struct Params {
 	Params(juce::AudioProcessor& p)
@@ -444,9 +500,6 @@ private:
 		for (auto* param : sourceGroup.getParameters(true)) {
 			// skip groups with no need for modulation
 			if (auto* paramWithID = dynamic_cast<juce::AudioProcessorParameterWithID *>(param)){
-				auto id = makeModID(paramWithID->getParameterID());
-				auto name = makeModName(paramWithID->getName(128));
-				
 				/*
 				 (const ParameterID& parameterID,
 									  const String& parameterName,
@@ -454,8 +507,10 @@ private:
 									  float defaultValue,
 									  const AudioParameterFloatAttributes& attributes = {})
 				 */
-				result->addChild(std::make_unique<APF>(JPID{id, 1},
-													   name,
+				auto const pid = paramWithID->getParameterID();
+				auto const pName = paramWithID->getName(128);
+				result->addChild(std::make_unique<APF>(JPID{makeModID(pid), 1},
+													   makeModName(pName),
 													   juce::NormalisableRange<float>(0.0f, 1.0f),
 													   0.0f,
 													   AudioParameterFloatAttributes()
@@ -466,6 +521,20 @@ private:
 														   return s.getFloatValue() / 100.f;	// account for percentage
 													   })
 													   ));
+				result->addChild(std::make_unique<ChoiceParam>(JPID{makeModPolarityID(pid), 1},
+															   makeModPolarityName(pName),
+															   PolarityLabels,
+															   1,
+															   AudioParameterChoiceAttributes().withAutomatable(true)
+															   )
+								 );
+				result->addChild(std::make_unique<ChoiceParam>(JPID{makeModSourceID(pid), 1},
+															   makeModSourceName(pName),
+															   PolarityLabels,
+															   1,
+															   AudioParameterChoiceAttributes().withAutomatable(true)
+															   )
+								 );
 			}
 			else {
 				std::cerr << "could not cast to parameter with ID\n";
