@@ -119,27 +119,28 @@ void CSGVoice::renderNextBlock (AudioBuffer<float> &outputBuffer, int startSampl
 	
 	for (int sample = 0; sample < numSamples; ++sample)
 	{
-		lfo._freq = calcLogModdedVal(*_sstate, param_e::LFO_RATE);
+		lfo._freq = calcLogModdedVal(_sstate, param_e::LFO_RATE);
 		lfo.phasor();   // increment internal phase of LFO
-		auto const lfo_wave_idx = calcLinearModdedVal(*_sstate, param_e::LFO_WAVE);
+		auto const lfo_wave_idx = calcLinearModdedVal(_sstate, param_e::LFO_WAVE);
 
 //		lfo_out = lfo.multi(fmod(lfo_wave_idx, 4.0));
 		lfo_out = lfo.multi(lfo_wave_idx);
 
 		using namespace nvs::memoryless;
 		
-		float const finalCutoff = clamp<float>( calcLogModdedVal(*_sstate, param_e::CUTOFF), 1.f, (float)getSampleRate() / 2.f - 50.f);
+		float const finalCutoff = clamp<float>( calcLogModdedVal(_sstate, param_e::CUTOFF), 1.f, (float)getSampleRate() / 2.f - 50.f);
 		svf.setCutoff(finalCutoff);
 		
 #pragma message ("resonance param must conform to mod matrix logic too")
-		auto const res = jlimit(0.0f, 6.0f, 5.0f * lfo_out * smoothedParams.getNextValue(param_e::RESO_MOD) + smoothedParams.getNextValue(param_e::RESO));
+//		auto const res = jlimit(0.0f, 6.0f, 5.0f * lfo_out * smoothedParams.getNextValue(param_e::RESO_MOD) + smoothedParams.getNextValue(param_e::RESO));
+		auto const res = jlimit(0.f, 6.f, calcLinearModdedVal(_sstate, param_e::RESO));
 		svf.setResonance(res);
 		
 		env.setRise(smoothedParams.getNextValue(param_e::RISE));
 		env.setFall(smoothedParams.getNextValue(param_e::FALL));
 
 		auto const csg_wave = unit.getWave();
-		auto const drive = calcLogModdedVal(*_sstate, param_e::DRIVE);
+		auto const drive = calcLogModdedVal(_sstate, param_e::DRIVE);
 		svf(csg_wave * drive);
 		
 		auto getFilterVal = [&](float filterSelection){
@@ -158,7 +159,7 @@ void CSGVoice::renderNextBlock (AudioBuffer<float> &outputBuffer, int startSampl
 		}();
 		
 //		auto const drone = smoothedParams.getNextValue(param_e::DRONE);
-		auto const drone = jlimit(0.0f, 1.0f, calcLogModdedVal(*_sstate, param_e::DRONE));
+		auto const drone = jlimit(0.0f, 1.0f, calcLogModdedVal(_sstate, param_e::DRONE));
 
 		float const vcf_outL = getFilterVal(smoothedParams.getNextValue(param_e::TYPE_L));
 		jassert (0.0 < drive);

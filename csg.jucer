@@ -6,7 +6,7 @@
               jucerFormatVersion="1" headerPath="../../nvs_libraries&#10;../../Sprout"
               cppLanguageStandard="20" pluginFormats="buildAU,buildStandalone,buildVST3"
               pluginManufacturerCode="Nvss" pluginCode="Csgs" pluginChannelConfigs="{2, 2}"
-              version="0.4.0">
+              version="0.4.1">
   <MAINGROUP id="eGLGw9" name="csg">
     <GROUP id="{69A94108-40CB-F911-8559-A14C4205D062}" name="Source">
       <GROUP id="{006C947C-D3FB-CF24-893A-B6F59EBCD901}" name="Synth">

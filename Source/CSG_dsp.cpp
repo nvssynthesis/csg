@@ -110,26 +110,26 @@ float CSG::getWave()
 		}
 	}(feedback_algo);
 
-	float const feedback_amt = clamp<float>(calcLinearModdedVal(*_sstate, parameter_e::SELF_FM), 0.0f, 1.0f) * 24000.0f; // is the clamp really essential?
-	float const feedback_cutoff = clamp<float>( calcLogModdedVal(*_sstate, parameter_e::FM_SMOOTH), 1.f, getSampleRate() / 2 - 50.f);
+	float const feedback_amt = clamp<float>(calcLinearModdedVal(_sstate, parameter_e::SELF_FM), 0.0f, 1.0f) * 24000.0f; // is the clamp really essential?
+	float const feedback_cutoff = clamp<float>( calcLogModdedVal(_sstate, parameter_e::FM_SMOOTH), 1.f, getSampleRate() / 2 - 50.f);
 	
 	FM_filter.setCutoff(feedback_cutoff); // not smoothed currently
 	
 	float const feedback = FM_filter(fedback_delta * (fs * 0.000021f) * feedback_amt);
 	
 	// bitcrush that fed-back signal.
-	auto const fm_degrade = clamp<float>(calcLinearModdedVal(*_sstate, parameter_e::FM_DEGRADE), 1.01f, 2048.f);
-	base_freq = calcLogModdedVal(*_sstate, parameter_e::PITCH);
+	auto const fm_degrade = clamp<float>(calcLinearModdedVal(_sstate, parameter_e::FM_DEGRADE), 1.01f, 2048.f);
+	base_freq = calcLogModdedVal(_sstate, parameter_e::PITCH);
 	float const crushed_freqmod_sig = crush<float>(phasor_fm(feedback), fm_degrade);
 	
 	// on other hand, take sin and cos of phasor to do phase modulation (what will basically sound like wavefolding).
 	// we can fade between the sin and cos parts with equal power.
-	float const pmPreampTmp = calcLinearModdedVal(*_sstate, parameter_e::PM_AMOUNT);
-	auto const pmShapeTmp = clamp(calcLinearModdedVal(*_sstate, parameter_e::PM_SHAPE), 0.f, 1.f);
+	float const pmPreampTmp = calcLinearModdedVal(_sstate, parameter_e::PM_AMOUNT);
+	auto const pmShapeTmp = clamp(calcLinearModdedVal(_sstate, parameter_e::PM_SHAPE), 0.f, 1.f);
 	
 
 	// now, bitcrush and filter that signal.
-	float const pmSmoothTmp = clamp<float>( calcLogModdedVal(*_sstate, parameter_e::PM_TAME), 1.f, getSampleRate() / 2 - 50.f);
+	float const pmSmoothTmp = clamp<float>( calcLogModdedVal(_sstate, parameter_e::PM_TAME), 1.f, getSampleRate() / 2 - 50.f);
 	PM_filter.setCutoff(pmSmoothTmp);
 
 	double constexpr twopi = nvs::memoryless::math_impl::two_pi<double>();
@@ -138,7 +138,7 @@ float CSG::getWave()
 	auto const cosx = cosTable.cos(_phase * twopi * 2.f - 1.f);
 	float const weighted_sincos = (sinx * sqrt(1.f - (pmShapeTmp)) + (cosx * sqrt(pmShapeTmp))) * pmPreampTmp;
 	
-	auto const pm_degrade = calcLinearModdedVal(*_sstate, parameter_e::PM_DEGRADE);
+	auto const pm_degrade = calcLinearModdedVal(_sstate, parameter_e::PM_DEGRADE);
 	float const sinwin = PM_filter(crush<float>(weighted_sincos, clamp<float>(pm_degrade, 1.01f, 2048.f) ));
 
 	// sum the FM part and PM part. Make them both bipolar.
@@ -147,7 +147,7 @@ float CSG::getWave()
 	//z2 = output;
 	
 	//increment delay line============================================================================
-	float const mem_tmp = [mem_raw_val = calcLinearModdedVal(*_sstate, parameter_e::MEMORY), L = float(this->zLength)](){
+	float const mem_tmp = [mem_raw_val = calcLinearModdedVal(_sstate, parameter_e::MEMORY), L = float(this->zLength)](){
 		auto val = scale(mem_raw_val, 1.f, L);
 		val = mspWrap(val);
 		return scale(val, 0.f, 1.f, 1.f, L);

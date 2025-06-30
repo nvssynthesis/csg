@@ -41,11 +41,27 @@ inline float calcLinearRange(nvs::param::SmoothedParamsManager const &smoothed, 
 	auto normRange = smoothed.getRange(pid);
 	return normRange.end - normRange.start;
 }
-inline float calcLinearModdedVal(nvs::csg::SharedState &state, param::parameter_e pid){
-	auto const polarityIdx = state.polarityParams[pid]->getIndex();
-	auto const modSourceIdx = state.modSourceParams[pid]->getIndex();
-	
-	auto const &modSources = state.modSources;
+inline float calcLinearModdedVal(nvs::csg::SharedState *state, param::parameter_e pid){
+	if (state == nullptr){
+		jassertfalse;
+		return 0.f;
+	}
+	if (!state->modSourceParams.contains(pid)){
+		jassertfalse;
+		return 0.f;
+	}
+	if (!state->polarityParams.contains(pid)){
+		jassertfalse;
+		return 0.f;
+	}
+	auto const polarityIdx = state->polarityParams[pid]->getIndex();
+	auto const modSourceIdx = state->modSourceParams[pid]->getIndex();
+	auto const &modSources = state->modSources;
+
+	if (modSourceIdx >= modSources.size()){
+		jassertfalse;
+		return 0.f;
+	}	
 	
 	auto const modVal = [modSources, modSourceIdx, polarityIdx]() -> float
 	{
@@ -66,18 +82,36 @@ inline float calcLinearModdedVal(nvs::csg::SharedState &state, param::parameter_
 		return 0.f;
 	}();
 	
-	auto &smoothed = state.smoothedParamsManager;
+	auto &smoothed = state->smoothedParamsManager;
 	
-	auto const retval = smoothed.getNextValue(pid) + modVal * smoothed.getNextValue(basePIDToModPID(pid)) * calcLinearRange(smoothed, pid);
+	auto const r = calcLinearRange(smoothed, pid);
+	auto const retval = smoothed.getNextValue(pid) + modVal * smoothed.getNextValue(basePIDToModPID(pid)) * r;
 	jassert (retval == retval);
 	return retval;
 }
-inline float calcLogModdedVal(nvs::csg::SharedState &state, param::parameter_e pid){
-	auto const &modSources = state.modSources;
+inline float calcLogModdedVal(nvs::csg::SharedState *state, param::parameter_e pid){
+	if (state == nullptr){
+		jassertfalse;
+		return 0.f;
+	}
+	if (!state->modSourceParams.contains(pid)){
+		jassertfalse;
+		return 0.f;
+	}
+	if (!state->polarityParams.contains(pid)){
+		jassertfalse;
+		return 0.f;
+	}
 	
-	auto &smoothed = state.smoothedParamsManager;
+	auto const &modSources = state->modSources;
+	auto const modSourceIdx = state->modSourceParams[pid]->getIndex();
+
+	if (modSourceIdx >= modSources.size()){
+		jassertfalse;
+		return 0.f;
+	}
 	
-	auto const modSourceIdx = state.modSourceParams[pid]->getIndex();
+	auto &smoothed = state->smoothedParamsManager;
 	
 	auto const modVal = *modSources[modSourceIdx];
 	auto const baseValHz = smoothed.getNextValue(pid);
@@ -85,10 +119,7 @@ inline float calcLogModdedVal(nvs::csg::SharedState &state, param::parameter_e p
 	
 	auto const baseValSemitones = hertzToMidi(baseValHz);
 
-	
-	auto const polarityIdx = state.polarityParams[pid]->getIndex();
-	
-
+	auto const polarityIdx = state->polarityParams[pid]->getIndex();
 	
 	float const min = [polarityIdx, modSourceIdx](){
 		decltype(modSourceIdx) constexpr LFOidx = 0;
