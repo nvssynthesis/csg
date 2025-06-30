@@ -272,7 +272,7 @@ auto makeTimingNormRange = []() -> NormRangeF {
 	range.setSkewForCentre(100.0f);
 	return range;
 };
-auto makeBitsRange = []() -> NormRangeF { return NormRangeF(0.01f, 1024.f,
+auto makeBitsRange = []() -> NormRangeF { return NormRangeF(0.015625f, 4096.f,
 [](float start, float end, float normalised) -> float	// convertFrom0To1Func
 {
 	return start * std::pow(end / start, normalised);
